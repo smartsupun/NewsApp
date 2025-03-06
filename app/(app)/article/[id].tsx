@@ -1,4 +1,3 @@
-// app/(app)/(article)/[id].tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Share, Linking, ActivityIndicator } from 'react-native';
 import { observer } from 'mobx-react-lite';
@@ -10,6 +9,13 @@ import newsStore from '../../../src/services/stores/newsStore';
 import settingsStore from '../../../src/services/stores/settingsStore';
 import colors from '../../../src/theme/colors';
 import typography from '../../../src/theme/typography';
+import {
+    scale,
+    verticalScale,
+    SPACING,
+    RADIUS,
+    FONT_SIZE
+} from '../../../src/utils/constants';
 
 const ArticleDetailScreen = observer(() => {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -50,14 +56,13 @@ const ArticleDetailScreen = observer(() => {
         <>
             <Stack.Screen
                 options={{
-                    title: 'Article', // Just use a simple, clean title
+                    title: 'Article',
                     headerShown: false,
                     headerTintColor: 'white',
-                    headerTitleAlign: 'center', // Center the header text
+                    headerTitleAlign: 'center',
                     headerStyle: {
                         backgroundColor: colors.primary
                     },
-                    // Add a back button that doesn't show text
                     headerBackTitleVisible: false,
                 }}
             />
@@ -190,65 +195,79 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        padding: SPACING.lg,
     },
     errorText: {
         ...typography.h2,
         color: colors.text,
-        marginTop: 16,
-        marginBottom: 24,
+        marginTop: SPACING.md,
+        marginBottom: SPACING.lg,
+        fontSize: FONT_SIZE.xl,
+        textAlign: 'center',
     },
     darkText: {
         color: colors.darkText,
     },
     backButton: {
         backgroundColor: colors.primary,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 8,
+        paddingVertical: SPACING.md,
+        paddingHorizontal: SPACING.lg,
+        borderRadius: RADIUS.sm,
+        minWidth: scale(120),
+        alignItems: 'center',
     },
     backButtonText: {
         color: 'white',
         fontWeight: 'bold',
+        fontSize: FONT_SIZE.md,
     },
     image: {
         width: '100%',
-        height: 250,
+        height: verticalScale(250),
     },
     placeholderImage: {
         width: '100%',
-        height: 250,
+        height: verticalScale(250),
         backgroundColor: colors.background,
         justifyContent: 'center',
         alignItems: 'center',
     },
     articleContent: {
-        padding: 16,
+        padding: SPACING.md,
+        paddingBottom: SPACING.xl,
     },
     title: {
         ...typography.h1,
         color: colors.text,
-        marginBottom: 12,
+        marginBottom: SPACING.md,
+        fontSize: FONT_SIZE.xxl,
+        lineHeight: FONT_SIZE.xxl * 1.3,
     },
     metaRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 8,
+        marginBottom: SPACING.sm,
+        flexWrap: 'wrap',
     },
     source: {
         ...typography.caption,
         fontWeight: '600',
         color: colors.textSecondary,
+        fontSize: FONT_SIZE.sm,
+        marginBottom: SPACING.xs,
     },
     date: {
         ...typography.caption,
         color: colors.textSecondary,
+        fontSize: FONT_SIZE.sm,
+        marginBottom: SPACING.xs,
     },
     author: {
         ...typography.caption,
         color: colors.textSecondary,
-        marginBottom: 16,
+        marginBottom: SPACING.md,
         fontStyle: 'italic',
+        fontSize: FONT_SIZE.sm,
     },
     darkSubText: {
         color: colors.darkTextSecondary,
@@ -256,41 +275,53 @@ const styles = StyleSheet.create({
     actionRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 16,
+        marginBottom: SPACING.md,
     },
     actionButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 8,
+        padding: SPACING.sm,
+        minWidth: scale(80),
+        justifyContent: 'center',
     },
     actionText: {
-        marginLeft: 6,
+        marginLeft: SPACING.xs,
         color: colors.primary,
         fontWeight: '500',
+        fontSize: FONT_SIZE.sm,
     },
     separator: {
         height: 1,
-        backgroundColor: settingsStore.darkMode ? colors.darkDivider : colors.divider,
-        marginVertical: 16,
+        backgroundColor: colors.divider,
+        marginVertical: SPACING.md,
+        width: '100%',
+    },
+    darkSeparator: {
+        backgroundColor: colors.darkDivider,
     },
     content: {
         ...typography.body,
         color: colors.text,
-        lineHeight: 24,
+        lineHeight: FONT_SIZE.md * 1.6,
+        fontSize: FONT_SIZE.md,
     },
     readMoreButton: {
         backgroundColor: colors.primary,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 8,
+        paddingVertical: SPACING.md,
+        paddingHorizontal: SPACING.lg,
+        borderRadius: RADIUS.sm,
         alignSelf: 'center',
-        marginTop: 24,
-        marginBottom: 16,
+        marginTop: SPACING.xl,
+        marginBottom: SPACING.md,
+        minWidth: scale(160),
+        height: verticalScale(48),
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     readMoreText: {
         color: 'white',
         fontWeight: 'bold',
-    },
+        fontSize: FONT_SIZE.md,
+    }
 });
-
 export default ArticleDetailScreen;

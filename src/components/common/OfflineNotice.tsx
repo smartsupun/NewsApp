@@ -1,10 +1,13 @@
-// src/components/common/OfflineNotice.tsx
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { FontAwesome } from '@expo/vector-icons';
 import newsStore from '../../services/stores/newsStore';
-import colors from '../../theme/colors';
+import {
+    verticalScale,
+    SPACING,
+    FONT_SIZE
+} from '../../../src/utils/constants';
 
 const OfflineNotice = observer(() => {
     if (!newsStore.isOffline) return null;
@@ -20,17 +23,20 @@ const OfflineNotice = observer(() => {
 const styles = StyleSheet.create({
     container: {
         backgroundColor: '#ff9800',
-        padding: 8,
+        padding: SPACING.sm,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
+        height: verticalScale(40),
     },
     text: {
         color: 'white',
-        marginLeft: 8,
+        marginLeft: SPACING.sm,
         fontWeight: '500',
+        fontSize: FONT_SIZE.sm,
     }
+
 });
 
 export default OfflineNotice;

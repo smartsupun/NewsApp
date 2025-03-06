@@ -1,4 +1,3 @@
-// src/components/news/CategoryList.tsx
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
@@ -6,6 +5,13 @@ import { FontAwesome } from '@expo/vector-icons';
 import settingsStore from '../../services/stores/settingsStore';
 import colors from '../../theme/colors';
 import typography from '../../theme/typography';
+import {
+    scale,
+    verticalScale,
+    SPACING,
+    RADIUS,
+    FONT_SIZE
+} from '../../../src/utils/constants';
 
 interface Category {
     id: string;
@@ -76,34 +82,36 @@ const CategoryList = observer(({ selectedCategory, onSelectCategory }: CategoryL
     );
 });
 
+
 const styles = StyleSheet.create({
     wrapper: {
-        marginBottom: 8, // Add space below the category list
-        height: 50, // Set a fixed height to ensure visibility
+        marginBottom: SPACING.sm,
+        height: verticalScale(50),
         width: '100%',
     },
     scrollView: {
-        paddingVertical: 4, // Add vertical padding
+        paddingVertical: SPACING.xs,
     },
     container: {
-        paddingHorizontal: 12,
-        paddingVertical: 4,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.xs,
         flexDirection: 'row',
         flexWrap: 'nowrap',
-        alignItems: 'center', // Center items vertically
+        alignItems: 'center',
     },
     categoryItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        marginHorizontal: 4,
-        borderRadius: 20,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.sm,
+        marginHorizontal: SPACING.xs,
+        borderRadius: RADIUS.round,
         backgroundColor: colors.surface,
         borderWidth: 1,
         borderColor: colors.divider,
-        minWidth: 80,
-        height: 36, // Fixed height for consistency
+        minWidth: scale(80),
+        height: verticalScale(36),
+        justifyContent: 'center',
     },
     darkCategoryItem: {
         backgroundColor: colors.darkSurface,
@@ -114,13 +122,15 @@ const styles = StyleSheet.create({
         borderColor: colors.primary,
     },
     darkSelectedCategory: {
-        backgroundColor: colors.primaryDark,
-        borderColor: colors.primaryDark,
+        backgroundColor: colors.primaryDark || colors.primary,
+        borderColor: colors.primaryDark || colors.primary,
     },
     categoryText: {
         ...typography.caption,
-        marginLeft: 8,
+        marginLeft: SPACING.sm,
         color: colors.text,
+        fontSize: FONT_SIZE.sm,
+        fontWeight: '500',
     },
     darkCategoryText: {
         color: colors.darkText,
@@ -128,7 +138,9 @@ const styles = StyleSheet.create({
     selectedCategoryText: {
         color: '#fff',
         fontWeight: '600',
-    },
+    }
+
 });
+
 
 export default CategoryList;

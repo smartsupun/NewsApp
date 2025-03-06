@@ -1,4 +1,3 @@
-// app/(app)/_layout.tsx
 import { Tabs } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { FontAwesome } from '@expo/vector-icons';

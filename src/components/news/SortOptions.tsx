@@ -1,10 +1,16 @@
-// src/components/news/SortOptions.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import settingsStore from '../../services/stores/settingsStore';
 import colors from '../../theme/colors';
 import typography from '../../theme/typography';
+import {
+    scale,
+    verticalScale,
+    SPACING,
+    RADIUS,
+    FONT_SIZE
+} from '../../../src/utils/constants';
 
 export type SortOption = 'newest' | 'oldest';
 
@@ -69,17 +75,22 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.sm,
         backgroundColor: colors.background,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.divider,
+        height: verticalScale(44),
     },
     darkContainer: {
         backgroundColor: colors.darkBackground,
+        borderBottomColor: colors.darkDivider,
     },
     label: {
         ...typography.caption,
         color: colors.textSecondary,
-        marginRight: 10,
+        marginRight: SPACING.sm,
+        fontSize: FONT_SIZE.sm,
     },
     darkText: {
         color: colors.darkTextSecondary,
@@ -87,11 +98,14 @@ const styles = StyleSheet.create({
     option: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        marginRight: 8,
-        borderRadius: 16,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.xs,
+        marginRight: SPACING.sm,
+        borderRadius: RADIUS.round,
         backgroundColor: colors.surface,
+        height: verticalScale(28),
+        minWidth: scale(80),
+        justifyContent: 'center',
     },
     selectedOption: {
         backgroundColor: colors.primaryLight,
@@ -99,7 +113,8 @@ const styles = StyleSheet.create({
     optionText: {
         ...typography.caption,
         color: colors.text,
-        marginRight: 5,
+        marginRight: SPACING.xs,
+        fontSize: FONT_SIZE.sm,
     },
     selectedText: {
         color: colors.primary,

@@ -1,4 +1,3 @@
-// app/(app)/index.tsx
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, StyleSheet, RefreshControl, Text, ActivityIndicator } from 'react-native';
 import { observer } from 'mobx-react-lite';
@@ -12,7 +11,12 @@ import settingsStore from '../../src/services/stores/settingsStore';
 import colors from '../../src/theme/colors';
 import typography from '../../src/theme/typography';
 import OfflineNotice from '../../src/components/common/OfflineNotice';
-
+import {
+    verticalScale,
+    SPACING,
+    FONT_SIZE,
+    IS_LARGE_DEVICE
+} from '../../src/utils/constants';
 const HomeScreen = observer(() => {
     const [selectedCategory, setSelectedCategory] = useState('');
     const [refreshing, setRefreshing] = useState(false);
@@ -104,17 +108,20 @@ const styles = StyleSheet.create({
         backgroundColor: colors.darkBackground,
     },
     header: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.sm,
         backgroundColor: colors.primary,
+        height: verticalScale(56),
+        justifyContent: 'center',
     },
     headerTitle: {
         ...typography.h1,
-        color: colors.text,
-        fontSize: 24,
+        color: '#ffffff',
+        fontSize: FONT_SIZE.xxl,
     },
     listContent: {
-        padding: 16,
+        padding: SPACING.md,
+        paddingBottom: SPACING.xl,
     },
     loadingContainer: {
         flex: 1,
@@ -125,16 +132,19 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        padding: SPACING.lg,
     },
     emptyText: {
         ...typography.body,
         color: colors.textSecondary,
         textAlign: 'center',
+        fontSize: FONT_SIZE.md,
+        lineHeight: FONT_SIZE.md * 1.5,
+        maxWidth: IS_LARGE_DEVICE ? '60%' : '80%',
     },
     darkText: {
         color: colors.darkTextSecondary,
-    },
+    }
 });
 
 export default HomeScreen;

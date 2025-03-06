@@ -1,4 +1,3 @@
-// src/services/api/newsApi.ts
 import Constants from 'expo-constants';
 import { ArticleResponse } from '../../models/Article';
 

@@ -10,6 +10,17 @@ import { authenticateWithBiometrics } from '../../src/services/auth/biometricAut
 import authStore from '../../src/services/stores/authStore';
 import settingsStore from '../../src/services/stores/settingsStore';
 import colors from '../../src/theme/colors';
+import {
+    scale,
+    verticalScale,
+    SPACING,
+    RADIUS,
+    FONT_SIZE,
+    SCREEN_WIDTH,
+    SCREEN_HEIGHT,
+    IS_LANDSCAPE,
+    IS_LARGE_DEVICE
+} from '../../src/utils/constants';
 import typography from '../../src/theme/typography';
 
 const LoginScreen = observer(() => {
@@ -194,11 +205,11 @@ const LoginScreen = observer(() => {
                         </TouchableOpacity>
                     </View>
 
-                    <TouchableOpacity style={styles.forgotPassword}>
+                    {/* <TouchableOpacity style={styles.forgotPassword}>
                         <Text style={[styles.forgotPasswordText, settingsStore.darkMode && styles.darkLinkText]}>
                             Forgot Password?
                         </Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
 
                     <TouchableOpacity
                         style={styles.loginButton}
@@ -252,70 +263,83 @@ const LoginScreen = observer(() => {
 const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 24,
+        paddingHorizontal: SPACING.lg,
+        paddingTop: verticalScale(60),
+        paddingBottom: SPACING.lg,
         backgroundColor: colors.background,
+        minHeight: SCREEN_HEIGHT,
     },
     darkContainer: {
         backgroundColor: colors.darkBackground,
     },
     headerContainer: {
-        marginBottom: 30,
+        marginBottom: SPACING.xl,
+        width: '100%',
     },
     headerText: {
         ...typography.h1,
         color: colors.text,
+        fontSize: FONT_SIZE.display,
+        marginBottom: SPACING.sm,
     },
     subHeaderText: {
         ...typography.subtitle,
         color: colors.textSecondary,
+        fontSize: FONT_SIZE.md,
+        lineHeight: FONT_SIZE.md * 1.4,
+        width: '90%',
     },
     activeAccountsContainer: {
-        marginBottom: 20,
+        marginBottom: SPACING.lg,
+        width: '100%',
     },
     activeAccountsTitle: {
         ...typography.body,
         fontWeight: '600',
-        marginBottom: 10,
+        marginBottom: SPACING.sm,
         color: colors.text,
+        fontSize: FONT_SIZE.lg,
     },
     accountItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 8,
-        marginBottom: 5,
+        paddingVertical: SPACING.sm,
+        marginBottom: SPACING.xs,
+        width: '100%',
     },
     accountAvatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: scale(40),
+        height: scale(40),
+        borderRadius: scale(20),
         backgroundColor: colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 10,
+        marginRight: SPACING.sm,
     },
     avatarText: {
         color: 'white',
         fontWeight: 'bold',
-        fontSize: 18,
+        fontSize: FONT_SIZE.xl,
     },
     accountName: {
         ...typography.body,
         color: colors.text,
+        fontSize: FONT_SIZE.md,
     },
     socialContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 20,
+        marginBottom: SPACING.lg,
+        width: '100%',
     },
     socialButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 12,
-        borderRadius: 8,
+        paddingVertical: SPACING.md,
+        borderRadius: RADIUS.sm,
         flex: 0.48,
+        height: verticalScale(48),
     },
     facebookButton: {
         backgroundColor: '#3b5998',
@@ -326,12 +350,14 @@ const styles = StyleSheet.create({
     socialButtonText: {
         color: 'white',
         fontWeight: '600',
-        marginLeft: 8,
+        marginLeft: SPACING.sm,
+        fontSize: FONT_SIZE.md,
     },
     dividerContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: SPACING.lg,
+        width: '100%',
     },
     divider: {
         flex: 1,
@@ -339,83 +365,105 @@ const styles = StyleSheet.create({
         backgroundColor: colors.divider,
     },
     dividerText: {
-        marginHorizontal: 10,
+        marginHorizontal: SPACING.sm,
         color: colors.textSecondary,
+        fontSize: FONT_SIZE.md,
     },
     formContainer: {
-        marginBottom: 20,
+        marginBottom: SPACING.lg,
+        width: '100%',
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
         borderColor: colors.divider,
-        borderRadius: 8,
-        marginBottom: 16,
-        paddingHorizontal: 12,
+        borderRadius: RADIUS.sm,
+        marginBottom: SPACING.md,
+        paddingHorizontal: SPACING.md,
         backgroundColor: colors.surface,
+        height: verticalScale(48),
+        width: '100%',
     },
     input: {
         flex: 1,
-        paddingVertical: 12,
+        paddingVertical: SPACING.md,
         color: colors.text,
+        fontSize: FONT_SIZE.md,
+        height: '100%',
     },
     eyeIcon: {
-        padding: 8,
+        padding: SPACING.sm,
+        height: '100%',
+        justifyContent: 'center',
     },
     forgotPassword: {
         alignSelf: 'flex-end',
-        marginBottom: 20,
+        marginBottom: SPACING.lg,
+        paddingHorizontal: SPACING.xs,
     },
     forgotPasswordText: {
         color: colors.primary,
+        fontSize: FONT_SIZE.md,
     },
     loginButton: {
         backgroundColor: colors.primary,
-        paddingVertical: 14,
-        borderRadius: 8,
+        paddingVertical: SPACING.md,
+        borderRadius: RADIUS.sm,
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: SPACING.lg,
+        width: '100%',
+        height: verticalScale(50),
+        justifyContent: 'center',
     },
     loginButtonText: {
         color: 'white',
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: FONT_SIZE.lg,
     },
     biometricButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 12,
+        paddingVertical: SPACING.md,
+        height: verticalScale(48),
+        width: '100%',
     },
     biometricText: {
-        marginLeft: 8,
+        marginLeft: SPACING.sm,
         color: colors.primary,
         fontWeight: '600',
+        fontSize: FONT_SIZE.md,
     },
     signupContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginBottom: 30,
+        marginBottom: SPACING.xl,
+        width: '100%',
     },
     signupText: {
         color: colors.textSecondary,
+        fontSize: FONT_SIZE.md,
     },
     signupLink: {
         color: colors.primary,
         fontWeight: 'bold',
-        marginLeft: 5,
+        marginLeft: SPACING.xs,
+        fontSize: FONT_SIZE.md,
     },
     darkModeToggle: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 10,
-        marginTop: 10,
+        padding: SPACING.sm,
+        marginTop: SPACING.sm,
+        width: '100%',
+        height: verticalScale(44),
     },
     darkModeText: {
-        marginLeft: 8,
+        marginLeft: SPACING.sm,
         color: colors.text,
+        fontSize: FONT_SIZE.md,
     },
     darkText: {
         color: colors.darkText,
@@ -435,6 +483,24 @@ const styles = StyleSheet.create({
     },
     darkLinkText: {
         color: colors.primaryLight,
+    },
+    // Additional responsive styles
+    scrollViewContent: {
+        flexGrow: 1,
+        minHeight: SCREEN_HEIGHT,
+    },
+    keyboardAvoidingView: {
+        flex: 1,
+        width: SCREEN_WIDTH,
+    },
+    // For different device size adjustments
+    landscapeAdjustment: {
+        paddingHorizontal: IS_LANDSCAPE ? SPACING.xxl : SPACING.lg,
+    },
+    tabletAdjustment: {
+        paddingHorizontal: IS_LARGE_DEVICE ? SPACING.xxl : SPACING.lg,
+        maxWidth: IS_LARGE_DEVICE ? 600 : '100%',
+        alignSelf: 'center',
     },
 });
 

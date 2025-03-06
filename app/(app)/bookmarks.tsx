@@ -1,4 +1,3 @@
-// app/(app)/bookmarks.tsx
 import React from 'react';
 import { View, FlatList, StyleSheet, Text } from 'react-native';
 import { observer } from 'mobx-react-lite';
@@ -9,6 +8,11 @@ import newsStore, { SortOption } from '../../src/services/stores/newsStore';
 import settingsStore from '../../src/services/stores/settingsStore';
 import colors from '../../src/theme/colors';
 import typography from '../../src/theme/typography';
+import {
+    verticalScale,
+    SPACING,
+    FONT_SIZE
+} from '../../src/utils/constants';
 
 const BookmarksScreen = observer(() => {
     const handleSortChange = (option: SortOption) => {
@@ -18,7 +22,7 @@ const BookmarksScreen = observer(() => {
     return (
         <SafeAreaView
             style={[styles.container, settingsStore.darkMode && styles.darkContainer]}
-            edges={['right', 'left']} // Don't include top edge to reduce whitespace
+            edges={['right', 'left']}
         >
             <View style={styles.header}>
                 <Text style={[styles.headerTitle, settingsStore.darkMode && styles.darkText]}>
@@ -63,32 +67,38 @@ const styles = StyleSheet.create({
         backgroundColor: colors.darkBackground,
     },
     header: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.sm,
         backgroundColor: colors.primary,
+        height: verticalScale(56),
+        justifyContent: 'center',
     },
     headerTitle: {
         ...typography.h1,
-        color: colors.text,
-        fontSize: 24,
+        color: '#ffffff',
+        fontSize: FONT_SIZE.xxl,
     },
     darkText: {
         color: colors.darkText,
     },
     listContent: {
-        padding: 16,
+        padding: SPACING.md,
+        paddingBottom: SPACING.xl,
     },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        padding: SPACING.lg,
     },
     emptyText: {
         ...typography.body,
         color: colors.textSecondary,
         textAlign: 'center',
-    },
+        fontSize: FONT_SIZE.md,
+        lineHeight: FONT_SIZE.md * 1.5,
+    }
+
 });
 
 export default BookmarksScreen;

@@ -1,4 +1,3 @@
-// app/(app)/categories.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { observer } from 'mobx-react-lite';
@@ -9,7 +8,13 @@ import newsStore from '../../src/services/stores/newsStore';
 import settingsStore from '../../src/services/stores/settingsStore';
 import colors from '../../src/theme/colors';
 import typography from '../../src/theme/typography';
-
+import {
+    scale,
+    verticalScale,
+    SPACING,
+    RADIUS,
+    FONT_SIZE
+} from '../../src/utils/constants';
 interface Category {
     id: string;
     name: string;
@@ -134,18 +139,19 @@ const styles = StyleSheet.create({
     headerText: {
         ...typography.h2,
         color: colors.text,
-        marginVertical: 16,
-        paddingHorizontal: 16,
+        marginVertical: SPACING.md,
+        paddingHorizontal: SPACING.md,
+        fontSize: FONT_SIZE.xl,
     },
     categoryList: {
-        padding: 8,
+        padding: SPACING.sm,
     },
     categoryCard: {
         flex: 1,
-        margin: 8,
-        padding: 20,
+        margin: SPACING.sm,
+        padding: SPACING.lg,
         backgroundColor: colors.surface,
-        borderRadius: 12,
+        borderRadius: RADIUS.md,
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000',
@@ -153,7 +159,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
-        minHeight: 120,
+        minHeight: verticalScale(120),
     },
     darkCategoryCard: {
         backgroundColor: colors.darkSurface,
@@ -165,8 +171,9 @@ const styles = StyleSheet.create({
         ...typography.body,
         fontWeight: '600',
         color: colors.text,
-        marginTop: 12,
+        marginTop: SPACING.md,
         textAlign: 'center',
+        fontSize: FONT_SIZE.md,
     },
     darkText: {
         color: colors.darkText,
@@ -188,31 +195,40 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: settingsStore.darkMode ? colors.darkSurface : colors.surface,
-        paddingHorizontal: 16,
-        paddingVertical: 16,
+        backgroundColor: colors.surface,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.md,
         borderBottomWidth: 1,
-        borderBottomColor: settingsStore.darkMode ? colors.darkDivider : colors.divider,
+        borderBottomColor: colors.divider,
+        height: verticalScale(64),
     },
+
     categoryHeaderText: {
         ...typography.h2,
         color: colors.text,
+        fontSize: FONT_SIZE.xl,
     },
     closeButton: {
-        padding: 8,
+        padding: SPACING.sm,
+        width: scale(40),
+        height: scale(40),
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     articlesList: {
-        padding: 16,
-        backgroundColor: settingsStore.darkMode ? colors.darkBackground : colors.background,
+        padding: SPACING.md,
+        backgroundColor: colors.background,
     },
+
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: settingsStore.darkMode ? colors.darkBackground : colors.background,
+        backgroundColor: colors.background,
     },
+
     emptyContainer: {
-        padding: 20,
+        padding: SPACING.lg,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -220,7 +236,9 @@ const styles = StyleSheet.create({
         ...typography.body,
         color: colors.textSecondary,
         textAlign: 'center',
-    },
+        fontSize: FONT_SIZE.md,
+    }
+
 });
 
 export default CategoriesScreen;
