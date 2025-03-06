@@ -23,7 +23,7 @@ export const IS_LANDSCAPE = width > height;
 export const SPACING = {
     xs: scale(4),
     sm: scale(8),
-    md: scale(16),
+    md: scale(12),
     lg: scale(24),
     xl: scale(32),
     xxl: scale(48),

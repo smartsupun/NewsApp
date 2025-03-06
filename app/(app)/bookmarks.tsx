@@ -24,11 +24,6 @@ const BookmarksScreen = observer(() => {
             style={[styles.container, settingsStore.darkMode && styles.darkContainer]}
             edges={['right', 'left']}
         >
-            <View style={styles.header}>
-                <Text style={[styles.headerTitle, settingsStore.darkMode && styles.darkText]}>
-                    Bookmarks
-                </Text>
-            </View>
 
             <SortOptions
                 currentSort={newsStore.sortOption}
