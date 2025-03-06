@@ -9,8 +9,8 @@ import useFacebookAuth from '../../src/services/auth/facebookAuth';
 import { authenticateWithBiometrics } from '../../src/services/auth/biometricAuth';
 import authStore from '../../src/services/stores/authStore';
 import settingsStore from '../../src/services/stores/settingsStore';
-import colors from '../../src/services/theme/colors';
-import typography from '../../src/services/theme/typography';
+import colors from '../../src/theme/colors';
+import typography from '../../src/theme/typography';
 
 const LoginScreen = observer(() => {
     const [email, setEmail] = useState('');

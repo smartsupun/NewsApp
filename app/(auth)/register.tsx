@@ -1,119 +1,188 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    KeyboardAvoidingView,
+    ScrollView,
+    Platform,
+    Alert
+} from 'react-native';
 import { router } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { FontAwesome } from '@expo/vector-icons';
-import * as LocalAuthentication from 'expo-local-authentication';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import * as yup from 'yup';
 import useGoogleAuth from '../../src/services/auth/googleAuth';
 import useFacebookAuth from '../../src/services/auth/facebookAuth';
-import { authenticateWithBiometrics } from '../../src/services/auth/biometricAuth';
 import authStore from '../../src/services/stores/authStore';
 import settingsStore from '../../src/services/stores/settingsStore';
-import colors from '../../src/services/theme/colors';
-import typography from '../../src/services/theme/typography';
+import colors from '../../src/theme/colors';
+import typography from '../../src/theme/typography';
 
-const LoginScreen = observer(() => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+// Form validation schema
+const validationSchema = yup.object().shape({
+    firstName: yup.string().required('First name is required'),
+    lastName: yup.string().required('Last name is required'),
+    email: yup.string().email('Please enter a valid email').required('Email is required'),
+    mobileNumber: yup.string().matches(/^\d{10}$/, 'Phone number must be 10 digits').required('Mobile number is required'),
+    password: yup.string()
+        .min(8, 'Password must be at least 8 characters')
+        .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+        .matches(/[0-9]/, 'Password must contain at least one number')
+        .matches(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character')
+        .required('Password is required'),
+    confirmPassword: yup.string()
+        .oneOf([yup.ref('password')], 'Passwords must match')
+        .required('Confirm password is required'),
+    dateOfBirth: yup.date()
+        .max(new Date(Date.now() - 18 * 365 * 24 * 60 * 60 * 1000), 'You must be at least 18 years old')
+        .required('Date of birth is required'),
+    termsAccepted: yup.boolean()
+        .oneOf([true], 'You must accept the terms and conditions')
+});
+
+const RegisterScreen = observer(() => {
+    // Form state
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        mobileNumber: '',
+        password: '',
+        confirmPassword: '',
+        dateOfBirth: new Date(Date.now() - 18 * 365 * 24 * 60 * 60 * 1000),
+        termsAccepted: false
+    });
+
+    // UI state
     const [showPassword, setShowPassword] = useState(false);
-    const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+    // Social auth hooks
     const { loginWithGoogle } = useGoogleAuth();
     const { loginWithFacebook } = useFacebookAuth();
 
-    useEffect(() => {
-        const checkBiometric = async () => {
-            const biometricStatus = await LocalAuthentication.hasHardwareAsync();
-            setIsBiometricAvailable(biometricStatus);
-        };
+    // Update form data
+    const handleChange = (field: string, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
 
-        checkBiometric();
-    }, []);
+        // Clear error when field is edited
+        if (formErrors[field]) {
+            setFormErrors(prev => {
+                const updated = { ...prev };
+                delete updated[field];
+                return updated;
+            });
+        }
+    };
 
-    const handleLogin = async () => {
-        if (!email.trim() || !password.trim()) {
-            Alert.alert('Error', 'Please enter both email and password');
+    // Validate a single field
+    const validateField = async (field: string) => {
+        try {
+            const schema = yup.reach(validationSchema, field) as yup.Schema<any>;
+            await schema.validate(formData[field as keyof typeof formData]);
+            setFormErrors(prev => {
+                const updated = { ...prev };
+                delete updated[field];
+                return updated;
+            });
+            return true;
+        } catch (error) {
+            if (error instanceof yup.ValidationError) {
+                setFormErrors(prev => ({
+                    ...prev,
+                    [field]: error.message
+                }));
+            }
+            return false;
+        }
+    };
+
+    // Validate all fields
+    const validateForm = async () => {
+        try {
+            await validationSchema.validate(formData, { abortEarly: false });
+            setFormErrors({});
+            return true;
+        } catch (error) {
+            if (error instanceof yup.ValidationError) {
+                const errors: { [key: string]: string } = {};
+                error.inner.forEach(e => {
+                    if (e.path) {
+                        errors[e.path] = e.message;
+                    }
+                });
+                setFormErrors(errors);
+            }
+            return false;
+        }
+    };
+
+    // Handle registration
+    const handleRegister = async () => {
+        const isValid = await validateForm();
+
+        if (!isValid) {
+            Alert.alert('Validation Error', 'Please correct the errors in the form');
             return;
         }
 
-        const result = await authStore.loginWithEmail(email, password);
+        const { confirmPassword, termsAccepted, ...userData } = formData;
+
+        const result = await authStore.registerWithEmail(userData, formData.password);
 
         if (result.success) {
-            router.replace('/(app)');
+            Alert.alert(
+                'Registration Successful',
+                'Your account has been created successfully!',
+                [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+            );
         } else {
-            Alert.alert('Login Failed', result.message || 'Invalid credentials');
+            Alert.alert('Registration Failed', result.message || 'Something went wrong');
         }
     };
 
-    const handleGoogleLogin = async () => {
+    // Handle Google registration
+    const handleGoogleRegister = async () => {
         const result = await loginWithGoogle();
 
         if (result.success && result.user) {
+            // Here we might want to collect additional info not provided by Google
+            // For now, we'll just set the current user and navigate
             await authStore.setCurrentUser(result.user);
             router.replace('/(app)');
         } else {
-            Alert.alert('Google Login Failed', result.message || 'Something went wrong');
+            Alert.alert('Google Registration Failed', result.message || 'Something went wrong');
         }
     };
 
-    const handleFacebookLogin = async () => {
+    // Handle Facebook registration
+    const handleFacebookRegister = async () => {
         const result = await loginWithFacebook();
 
         if (result.success && result.user) {
             await authStore.setCurrentUser(result.user);
             router.replace('/(app)');
         } else {
-            Alert.alert('Facebook Login Failed', result.message || 'Something went wrong');
+            Alert.alert('Facebook Registration Failed', result.message || 'Something went wrong');
         }
     };
 
-    const handleBiometricLogin = async () => {
-        const result = await authenticateWithBiometrics();
-
-        if (result.success && result.user) {
-            await authStore.setCurrentUser(result.user);
-            router.replace('/(app)');
-        } else {
-            Alert.alert('Biometric Login Failed', result.message || 'Authentication failed');
-        }
-    };
-
-    const handleSwitchAccount = (userId: string) => {
-        authStore.switchAccount(userId).then(result => {
-            if (result.success) {
-                router.replace('/(app)');
-            } else {
-                Alert.alert('Error', result.message || 'Failed to switch account');
-            }
+    // Format date for display
+    const formatDate = (date: Date) => {
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
         });
-    };
-
-    const renderActiveAccounts = () => {
-        if (authStore.activeAccounts.length === 0) return null;
-
-        return (
-            <View style={styles.activeAccountsContainer}>
-                <Text style={[styles.activeAccountsTitle, settingsStore.darkMode && styles.darkText]}>Recent Accounts</Text>
-                {authStore.activeAccounts.map((account) => (
-                    <TouchableOpacity
-                        key={account.id}
-                        style={styles.accountItem}
-                        onPress={() => handleSwitchAccount(account.id)}
-                    >
-                        <View style={styles.accountAvatar}>
-                            <Text style={styles.avatarText}>
-                                {account.firstName ? account.firstName[0] : account.email[0].toUpperCase()}
-                            </Text>
-                        </View>
-                        <Text style={[styles.accountName, settingsStore.darkMode && styles.darkText]}>
-                            {account.firstName
-                                ? `${account.firstName} ${account.lastName || ''}`
-                                : account.email
-                            }
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
-        );
     };
 
     return (
@@ -128,18 +197,16 @@ const LoginScreen = observer(() => {
                 ]}
             >
                 <View style={styles.headerContainer}>
-                    <Text style={[styles.headerText, settingsStore.darkMode && styles.darkText]}>Sign In</Text>
+                    <Text style={[styles.headerText, settingsStore.darkMode && styles.darkText]}>Create Account</Text>
                     <Text style={[styles.subHeaderText, settingsStore.darkMode && styles.darkSubText]}>
-                        Welcome back to NewsApp! Sign in to access your personalized news feed.
+                        Join NewsApp to get personalized news content tailored to your interests
                     </Text>
                 </View>
-
-                {renderActiveAccounts()}
 
                 <View style={styles.socialContainer}>
                     <TouchableOpacity
                         style={[styles.socialButton, styles.facebookButton]}
-                        onPress={handleFacebookLogin}
+                        onPress={handleFacebookRegister}
                     >
                         <FontAwesome name="facebook" size={20} color="#fff" />
                         <Text style={styles.socialButtonText}>Facebook</Text>
@@ -147,7 +214,7 @@ const LoginScreen = observer(() => {
 
                     <TouchableOpacity
                         style={[styles.socialButton, styles.googleButton]}
-                        onPress={handleGoogleLogin}
+                        onPress={handleGoogleRegister}
                     >
                         <FontAwesome name="google" size={20} color="#fff" />
                         <Text style={styles.socialButtonText}>Google</Text>
@@ -161,26 +228,146 @@ const LoginScreen = observer(() => {
                 </View>
 
                 <View style={styles.formContainer}>
-                    <View style={[styles.inputContainer, settingsStore.darkMode && styles.darkInputContainer]}>
+                    {/* First Name */}
+                    <View style={styles.nameContainer}>
+                        <View style={[
+                            styles.inputContainer,
+                            styles.halfWidth,
+                            formErrors.firstName ? styles.inputError : null,
+                            settingsStore.darkMode && styles.darkInputContainer
+                        ]}>
+                            <TextInput
+                                style={[styles.input, settingsStore.darkMode && styles.darkInput]}
+                                placeholder="First Name"
+                                placeholderTextColor={settingsStore.darkMode ? '#aaa' : '#999'}
+                                value={formData.firstName}
+                                onChangeText={(text) => handleChange('firstName', text)}
+                                onBlur={() => validateField('firstName')}
+                            />
+                        </View>
+
+                        {/* Last Name */}
+                        <View style={[
+                            styles.inputContainer,
+                            styles.halfWidth,
+                            formErrors.lastName ? styles.inputError : null,
+                            settingsStore.darkMode && styles.darkInputContainer
+                        ]}>
+                            <TextInput
+                                style={[styles.input, settingsStore.darkMode && styles.darkInput]}
+                                placeholder="Last Name"
+                                placeholderTextColor={settingsStore.darkMode ? '#aaa' : '#999'}
+                                value={formData.lastName}
+                                onChangeText={(text) => handleChange('lastName', text)}
+                                onBlur={() => validateField('lastName')}
+                            />
+                        </View>
+                    </View>
+
+                    {/* Error messages for name fields */}
+                    <View style={styles.nameContainer}>
+                        {formErrors.firstName && (
+                            <Text style={[styles.errorText, styles.halfWidth]}>{formErrors.firstName}</Text>
+                        )}
+                        {formErrors.lastName && (
+                            <Text style={[styles.errorText, styles.halfWidth]}>{formErrors.lastName}</Text>
+                        )}
+                    </View>
+
+                    {/* Email */}
+                    <View style={[
+                        styles.inputContainer,
+                        ...(formErrors.email ? [styles.inputError] : []),
+                        settingsStore.darkMode && styles.darkInputContainer
+                    ]}>
                         <TextInput
                             style={[styles.input, settingsStore.darkMode && styles.darkInput]}
                             placeholder="Email"
                             placeholderTextColor={settingsStore.darkMode ? '#aaa' : '#999'}
                             keyboardType="email-address"
                             autoCapitalize="none"
-                            value={email}
-                            onChangeText={setEmail}
+                            value={formData.email}
+                            onChangeText={(text) => handleChange('email', text)}
+                            onBlur={() => validateField('email')}
                         />
                     </View>
+                    {formErrors.email && <Text style={styles.errorText}>{formErrors.email}</Text>}
 
-                    <View style={[styles.inputContainer, settingsStore.darkMode && styles.darkInputContainer]}>
+                    {/* Mobile Number */}
+                    <View style={[
+                        styles.inputContainer,
+                        ...(formErrors.mobileNumber ? [styles.inputError] : []),
+                        settingsStore.darkMode && styles.darkInputContainer
+                    ]}>
+                        <TextInput
+                            style={[styles.input, settingsStore.darkMode && styles.darkInput]}
+                            placeholder="Mobile Number"
+                            placeholderTextColor={settingsStore.darkMode ? '#aaa' : '#999'}
+                            keyboardType="phone-pad"
+                            value={formData.mobileNumber}
+                            onChangeText={(text) => handleChange('mobileNumber', text)}
+                            onBlur={() => validateField('mobileNumber')}
+                        />
+                    </View>
+                    {formErrors.mobileNumber && <Text style={styles.errorText}>{formErrors.mobileNumber}</Text>}
+
+                    {/* Date of Birth */}
+                    <TouchableOpacity
+                        style={[
+                            styles.inputContainer,
+                            ...(formErrors.dateOfBirth ? [styles.inputError] : []),
+                            settingsStore.darkMode && styles.darkInputContainer
+                        ]}
+                        onPress={() => setShowDatePicker(true)}
+                    >
+                        <Text
+                            style={[
+                                styles.input,
+                                !formData.dateOfBirth && styles.placeholderText,
+                                settingsStore.darkMode && styles.darkInput
+                            ]}
+                        >
+                            {formData.dateOfBirth ? formatDate(formData.dateOfBirth) : "Date of Birth"}
+                        </Text>
+                        <FontAwesome
+                            name="calendar"
+                            size={20}
+                            color={settingsStore.darkMode ? '#aaa' : '#999'}
+                            style={styles.icon}
+                        />
+                    </TouchableOpacity>
+                    {formErrors.dateOfBirth && <Text style={styles.errorText}>{formErrors.dateOfBirth}</Text>}
+
+                    {showDatePicker && (
+                        <DateTimePicker
+                            value={formData.dateOfBirth}
+                            mode="date"
+                            display="default"
+                            maximumDate={new Date()}
+                            onChange={(event, selectedDate) => {
+                                setShowDatePicker(false);
+                                if (selectedDate) {
+                                    handleChange('dateOfBirth', selectedDate);
+                                    validateField('dateOfBirth');
+                                }
+                            }}
+                        />
+                    )}
+
+                    {/* Password */}
+                    <View style={[
+                        styles.inputContainer,
+                        formErrors.password ? styles.inputError : null,
+                        settingsStore.darkMode && styles.darkInputContainer
+                    ]}>
                         <TextInput
                             style={[styles.input, settingsStore.darkMode && styles.darkInput]}
                             placeholder="Password"
                             placeholderTextColor={settingsStore.darkMode ? '#aaa' : '#999'}
                             secureTextEntry={!showPassword}
-                            value={password}
-                            onChangeText={setPassword}
+                            value={formData.password}
+                            onChangeText={(text) => handleChange('password', text)}
+                            onBlur={() => validateField('password')}
                         />
                         <TouchableOpacity
                             onPress={() => setShowPassword(!showPassword)}
@@ -193,40 +380,71 @@ const LoginScreen = observer(() => {
                             />
                         </TouchableOpacity>
                     </View>
+                    {formErrors.password && <Text style={styles.errorText}>{formErrors.password}</Text>}
 
-                    <TouchableOpacity style={styles.forgotPassword}>
-                        <Text style={[styles.forgotPasswordText, settingsStore.darkMode && styles.darkLinkText]}>
-                            Forgot Password?
+                    {/* Confirm Password */}
+                    <View style={[
+                        styles.inputContainer,
+                        formErrors.confirmPassword ? styles.inputError : null,
+                        settingsStore.darkMode && styles.darkInputContainer
+                    ]}>
+                        <TextInput
+                            style={[styles.input, settingsStore.darkMode && styles.darkInput]}
+                            placeholder="Confirm Password"
+                            placeholderTextColor={settingsStore.darkMode ? '#aaa' : '#999'}
+                            secureTextEntry={!showConfirmPassword}
+                            value={formData.confirmPassword}
+                            onChangeText={(text) => handleChange('confirmPassword', text)}
+                            onBlur={() => validateField('confirmPassword')}
+                        />
+                        <TouchableOpacity
+                            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                            style={styles.eyeIcon}
+                        >
+                            <FontAwesome
+                                name={showConfirmPassword ? 'eye' : 'eye-slash'}
+                                size={20}
+                                color={settingsStore.darkMode ? '#aaa' : '#999'}
+                            />
+                        </TouchableOpacity>
+                    </View>
+                    {formErrors.confirmPassword && <Text style={styles.errorText}>{formErrors.confirmPassword}</Text>}
+
+                    {/* Terms and Conditions */}
+                    <TouchableOpacity
+                        style={styles.termsContainer}
+                        onPress={() => handleChange('termsAccepted', !formData.termsAccepted)}
+                    >
+                        <View style={[
+                            styles.checkbox,
+                            formData.termsAccepted && styles.checkboxChecked,
+                            ...(formErrors.termsAccepted ? [styles.checkboxError] : [])
+                        ]}>
+                            {formData.termsAccepted && (
+                                <FontAwesome name="check" size={14} color="#fff" />
+                            )}
+                        </View>
+                        <Text style={[styles.termsText, settingsStore.darkMode && styles.darkText]}>
+                            I agree to the <Text style={styles.termsLink}>Terms and Conditions</Text> and <Text style={styles.termsLink}>Privacy Policy</Text>
                         </Text>
                     </TouchableOpacity>
+                    {formErrors.termsAccepted && <Text style={styles.errorText}>{formErrors.termsAccepted}</Text>}
 
                     <TouchableOpacity
-                        style={styles.loginButton}
-                        onPress={handleLogin}
+                        style={styles.registerButton}
+                        onPress={handleRegister}
                     >
-                        <Text style={styles.loginButtonText}>Log In</Text>
+                        <Text style={styles.registerButtonText}>Create Account</Text>
                     </TouchableOpacity>
-
-                    {isBiometricAvailable && (
-                        <TouchableOpacity
-                            style={styles.biometricButton}
-                            onPress={handleBiometricLogin}
-                        >
-                            <FontAwesome name="lock" size={24} color={colors.primary} />
-                            <Text style={[styles.biometricText, settingsStore.darkMode && styles.darkLinkText]}>
-                                Login with Fingerprint
-                            </Text>
-                        </TouchableOpacity>
-                    )}
                 </View>
 
-                <View style={styles.signupContainer}>
-                    <Text style={[styles.signupText, settingsStore.darkMode && styles.darkText]}>
-                        Don't have account?
+                <View style={styles.loginContainer}>
+                    <Text style={[styles.loginText, settingsStore.darkMode && styles.darkText]}>
+                        Already have an account?
                     </Text>
-                    <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-                        <Text style={[styles.signupLink, settingsStore.darkMode && styles.darkLinkText]}>
-                            Sign Up
+                    <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+                        <Text style={[styles.loginLink, settingsStore.darkMode && styles.darkLinkText]}>
+                            Sign In
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -253,7 +471,7 @@ const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
         paddingHorizontal: 24,
-        paddingTop: 60,
+        paddingTop: 40,
         paddingBottom: 24,
         backgroundColor: colors.background,
     },
@@ -261,7 +479,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.darkBackground,
     },
     headerContainer: {
-        marginBottom: 30,
+        marginBottom: 24,
     },
     headerText: {
         ...typography.h1,
@@ -270,39 +488,6 @@ const styles = StyleSheet.create({
     subHeaderText: {
         ...typography.subtitle,
         color: colors.textSecondary,
-    },
-    activeAccountsContainer: {
-        marginBottom: 20,
-    },
-    activeAccountsTitle: {
-        ...typography.body,
-        fontWeight: '600',
-        marginBottom: 10,
-        color: colors.text,
-    },
-    accountItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 8,
-        marginBottom: 5,
-    },
-    accountAvatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: colors.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 10,
-    },
-    avatarText: {
-        color: 'white',
-        fontWeight: 'bold',
-        fontSize: 18,
-    },
-    accountName: {
-        ...typography.body,
-        color: colors.text,
     },
     socialContainer: {
         flexDirection: 'row',
@@ -345,6 +530,13 @@ const styles = StyleSheet.create({
     formContainer: {
         marginBottom: 20,
     },
+    nameContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    halfWidth: {
+        width: '48%',
+    },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -355,53 +547,89 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         backgroundColor: colors.surface,
     },
+    inputError: {
+        borderColor: colors.error,
+    },
     input: {
         flex: 1,
         paddingVertical: 12,
         color: colors.text,
     },
+    placeholderText: {
+        color: '#999',
+    },
+    darkInputContainer: {
+        backgroundColor: colors.darkSurface,
+        borderColor: colors.darkDivider,
+    },
+    darkInput: {
+        color: colors.darkText,
+    },
     eyeIcon: {
         padding: 8,
     },
-    forgotPassword: {
-        alignSelf: 'flex-end',
-        marginBottom: 20,
+    icon: {
+        padding: 8,
     },
-    forgotPasswordText: {
+    errorText: {
+        color: colors.error,
+        fontSize: 12,
+        marginTop: -12,
+        marginBottom: 16,
+        marginLeft: 4,
+    },
+    termsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    checkbox: {
+        width: 20,
+        height: 20,
+        borderRadius: 4,
+        borderWidth: 1,
+        borderColor: colors.divider,
+        marginRight: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxChecked: {
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
+    },
+    checkboxError: {
+        borderColor: colors.error,
+    },
+    termsText: {
+        flex: 1,
+        color: colors.text,
+        fontSize: 14,
+    },
+    termsLink: {
         color: colors.primary,
+        fontWeight: '600',
     },
-    loginButton: {
+    registerButton: {
         backgroundColor: colors.primary,
         paddingVertical: 14,
         borderRadius: 8,
         alignItems: 'center',
         marginBottom: 20,
     },
-    loginButtonText: {
+    registerButtonText: {
         color: 'white',
         fontWeight: 'bold',
         fontSize: 16,
     },
-    biometricButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 12,
-    },
-    biometricText: {
-        marginLeft: 8,
-        color: colors.primary,
-        fontWeight: '600',
-    },
-    signupContainer: {
+    loginContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
         marginBottom: 30,
     },
-    signupText: {
+    loginText: {
         color: colors.textSecondary,
     },
-    signupLink: {
+    loginLink: {
         color: colors.primary,
         fontWeight: 'bold',
         marginLeft: 5,
@@ -411,7 +639,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 10,
-        marginTop: 10,
     },
     darkModeText: {
         marginLeft: 8,
@@ -423,13 +650,6 @@ const styles = StyleSheet.create({
     darkSubText: {
         color: colors.darkTextSecondary,
     },
-    darkInputContainer: {
-        backgroundColor: colors.darkSurface,
-        borderColor: colors.darkDivider,
-    },
-    darkInput: {
-        color: colors.darkText,
-    },
     darkDivider: {
         backgroundColor: colors.darkDivider,
     },
@@ -438,4 +658,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default LoginScreen;
+export default RegisterScreen;

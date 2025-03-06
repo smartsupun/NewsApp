@@ -11,13 +11,11 @@ import {
 // Register for redirect URI handling
 WebBrowser.maybeCompleteAuthSession();
 
-// Replace with your Facebook App ID
-const FB_APP_ID = '599520879746921';
 
 const useFacebookAuth = () => {
     const [request, response, promptAsync] = AuthSession.useAuthRequest(
         {
-            clientId: FB_APP_ID,
+            clientId: process.env.FACEBOOK_APP_ID!,
             responseType: 'token',
             redirectUri: AuthSession.makeRedirectUri({
                 scheme: 'newsapp'

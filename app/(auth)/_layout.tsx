@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import settingsStore from '../../src/services/stores/settingsStore';
-import colors from '../../src/services/theme/colors';
+import colors from '../../src/theme/colors';
 
 const AuthLayout = observer(() => {
     return (
