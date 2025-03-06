@@ -1,44 +1,55 @@
 // app/(app)/bookmarks.tsx
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, FlatList, StyleSheet, Text } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FontAwesome } from '@expo/vector-icons';
 import ArticleCard from '../../src/components/news/ArticleCard';
-import newsStore from '../../src/services/stores/newsStore';
+import SortOptions from '../../src/components/news/SortOptions';
+import newsStore, { SortOption } from '../../src/services/stores/newsStore';
 import settingsStore from '../../src/services/stores/settingsStore';
-import typography from '../../src/theme/typography';
 import colors from '../../src/theme/colors';
+import typography from '../../src/theme/typography';
 
 const BookmarksScreen = observer(() => {
+    const handleSortChange = (option: SortOption) => {
+        newsStore.setSortOption(option);
+    };
+
     return (
-        <SafeAreaView style={[styles.container, settingsStore.darkMode && styles.darkContainer]}>
-            <FlatList
-                data={newsStore.bookmarkedArticles}
-                keyExtractor={(item) => item.url}
-                renderItem={({ item }) => <ArticleCard article={item} />}
-                contentContainerStyle={styles.listContent}
-                ListHeaderComponent={
-                    <Text style={[styles.headerText, settingsStore.darkMode && styles.darkText]}>
-                        Your Bookmarks
-                    </Text>
-                }
-                ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <FontAwesome
-                            name="bookmark-o"
-                            size={64}
-                            color={settingsStore.darkMode ? colors.darkTextSecondary : colors.textSecondary}
-                        />
-                        <Text style={[styles.emptyText, settingsStore.darkMode && styles.darkText]}>
-                            No bookmarked articles yet
-                        </Text>
-                        <Text style={[styles.emptySubText, settingsStore.darkMode && styles.darkSubText]}>
-                            Save articles to read later by tapping the bookmark icon
-                        </Text>
-                    </View>
-                }
+        <SafeAreaView
+            style={[styles.container, settingsStore.darkMode && styles.darkContainer]}
+            edges={['right', 'left']} // Don't include top edge to reduce whitespace
+        >
+            <View style={styles.header}>
+                <Text style={[styles.headerTitle, settingsStore.darkMode && styles.darkText]}>
+                    Bookmarks
+                </Text>
+            </View>
+
+            <SortOptions
+                currentSort={newsStore.sortOption}
+                onSortChange={handleSortChange}
             />
+
+            {newsStore.bookmarkedArticles.length > 0 ? (
+                <FlatList
+                    data={newsStore.bookmarkedArticles}
+                    keyExtractor={(item) => item.url}
+                    renderItem={({ item }) => (
+                        <ArticleCard
+                            article={item}
+                            showBookmarkButton={true}
+                        />
+                    )}
+                    contentContainerStyle={styles.listContent}
+                />
+            ) : (
+                <View style={styles.emptyContainer}>
+                    <Text style={[styles.emptyText, settingsStore.darkMode && styles.darkText]}>
+                        You haven't bookmarked any articles yet.
+                    </Text>
+                </View>
+            )}
         </SafeAreaView>
     );
 });
@@ -51,38 +62,32 @@ const styles = StyleSheet.create({
     darkContainer: {
         backgroundColor: colors.darkBackground,
     },
-    listContent: {
-        padding: 16,
-        flexGrow: 1,
+    header: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        backgroundColor: colors.primary,
     },
-    headerText: {
-        ...typography.h2,
+    headerTitle: {
+        ...typography.h1,
         color: colors.text,
-        marginBottom: 16,
+        fontSize: 24,
     },
     darkText: {
         color: colors.darkText,
+    },
+    listContent: {
+        padding: 16,
     },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        minHeight: 400,
+        padding: 20,
     },
     emptyText: {
-        ...typography.h2,
-        color: colors.text,
-        marginTop: 16,
-    },
-    emptySubText: {
         ...typography.body,
         color: colors.textSecondary,
-        marginTop: 8,
         textAlign: 'center',
-        maxWidth: '80%',
-    },
-    darkSubText: {
-        color: colors.darkTextSecondary,
     },
 });
 

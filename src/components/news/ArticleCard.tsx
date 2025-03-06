@@ -1,8 +1,9 @@
 // src/components/news/ArticleCard.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { observer } from 'mobx-react-lite';
 import { Article } from '../../models/Article';
 import newsStore from '../../services/stores/newsStore';
 import settingsStore from '../../services/stores/settingsStore';
@@ -14,8 +15,17 @@ interface ArticleCardProps {
     showBookmarkButton?: boolean;
 }
 
-const ArticleCard = ({ article, showBookmarkButton = true }: ArticleCardProps) => {
-    const formattedDate = new Date(article.publishedAt).toLocaleDateString();
+const ArticleCard = observer(({ article, showBookmarkButton = true }: ArticleCardProps) => {
+    const publishedDate = new Date(article.publishedAt);
+
+    const formattedDate = publishedDate.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
     const isBookmarked = newsStore.isBookmarked(article.url);
 
     const handlePress = () => {
@@ -61,7 +71,10 @@ const ArticleCard = ({ article, showBookmarkButton = true }: ArticleCardProps) =
                 {showBookmarkButton && (
                     <TouchableOpacity
                         style={styles.bookmarkButton}
-                        onPress={() => newsStore.toggleBookmark(article)}
+                        onPress={() => {
+                            newsStore.toggleBookmark(article);
+                            // No need for setState as this component is now observed
+                        }}
                     >
                         <FontAwesome
                             name={isBookmarked ? "bookmark" : "bookmark-o"}
@@ -73,7 +86,7 @@ const ArticleCard = ({ article, showBookmarkButton = true }: ArticleCardProps) =
             </View>
         </TouchableOpacity>
     );
-};
+});
 
 const styles = StyleSheet.create({
     card: {

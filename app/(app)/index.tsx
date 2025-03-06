@@ -6,7 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ArticleCard from '../../src/components/news/ArticleCard';
 import SearchBar from '../../src/components/news/SearchBar';
 import CategoryList from '../../src/components/news/CategoryList';
-import newsStore from '../../src/services/stores/newsStore';
+import SortOptions from '../../src/components/news/SortOptions';
+import newsStore, { SortOption } from '../../src/services/stores/newsStore';
 import settingsStore from '../../src/services/stores/settingsStore';
 import colors from '../../src/theme/colors';
 import typography from '../../src/theme/typography';
@@ -30,6 +31,10 @@ const HomeScreen = observer(() => {
         setSelectedCategory(category);
     };
 
+    const handleSortChange = (option: SortOption) => {
+        newsStore.setSortOption(option);
+    };
+
     useEffect(() => {
         loadArticles();
     }, [selectedCategory]);
@@ -41,13 +46,21 @@ const HomeScreen = observer(() => {
             : newsStore.articles;
 
     return (
-        <SafeAreaView style={[styles.container, settingsStore.darkMode && styles.darkContainer]}>
+        <SafeAreaView
+            style={[styles.container, settingsStore.darkMode && styles.darkContainer]}
+            edges={['right', 'left']}         >
+
             <OfflineNotice />
             <SearchBar />
 
             <CategoryList
                 selectedCategory={selectedCategory}
                 onSelectCategory={handleCategorySelect}
+            />
+
+            <SortOptions
+                currentSort={newsStore.sortOption}
+                onSortChange={handleSortChange}
             />
 
             {newsStore.isLoading && !refreshing ? (
@@ -89,6 +102,16 @@ const styles = StyleSheet.create({
     },
     darkContainer: {
         backgroundColor: colors.darkBackground,
+    },
+    header: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        backgroundColor: colors.primary,
+    },
+    headerTitle: {
+        ...typography.h1,
+        color: colors.text,
+        fontSize: 24,
     },
     listContent: {
         padding: 16,

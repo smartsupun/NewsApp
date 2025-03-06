@@ -7,6 +7,9 @@ import * as articleRepository from '../database/articleRepository';
 import NetInfo from '@react-native-community/netinfo';
 
 const BOOKMARKS_STORAGE_KEY = 'newsapp_bookmarks';
+const SORT_PREFERENCE_KEY = 'newsapp_sort_preference';
+
+export type SortOption = 'newest' | 'oldest';
 
 class NewsStore {
     articles: Article[] = [];
@@ -16,10 +19,12 @@ class NewsStore {
     isLoading: boolean = false;
     error: string | null = null;
     isOffline: boolean = false;
+    sortOption: SortOption = 'newest';
 
     constructor() {
         makeAutoObservable(this);
         this.loadBookmarks();
+        this.loadSortPreference();
         this.checkConnectivity();
     }
 
@@ -37,7 +42,61 @@ class NewsStore {
 
     async initialize() {
         await this.loadBookmarks();
+        await this.loadSortPreference();
         await this.loadCachedArticles();
+    }
+
+    async loadSortPreference() {
+        try {
+            const savedSort = await AsyncStorage.getItem(SORT_PREFERENCE_KEY);
+            if (savedSort) {
+                runInAction(() => {
+                    this.sortOption = savedSort as SortOption;
+                });
+            }
+        } catch (error) {
+            console.error('Error loading sort preference:', error);
+        }
+    }
+
+    async saveSortPreference() {
+        try {
+            await AsyncStorage.setItem(SORT_PREFERENCE_KEY, this.sortOption);
+        } catch (error) {
+            console.error('Error saving sort preference:', error);
+        }
+    }
+
+    setSortOption(option: SortOption) {
+        this.sortOption = option;
+        this.saveSortPreference();
+        this.sortAllArticles();
+    }
+
+    // Apply current sort option to all article collections
+    sortAllArticles() {
+        this.articles = this.sortArticles(this.articles);
+        this.searchResults = this.sortArticles(this.searchResults);
+        this.bookmarkedArticles = this.sortArticles(this.bookmarkedArticles);
+
+        // Sort category articles
+        Object.keys(this.categoryArticles).forEach(category => {
+            this.categoryArticles[category] = this.sortArticles(this.categoryArticles[category]);
+        });
+    }
+
+    // Sort an array of articles based on the current sort option
+    sortArticles(articlesToSort: Article[]): Article[] {
+        return [...articlesToSort].sort((a, b) => {
+            const dateA = new Date(a.publishedAt).getTime();
+            const dateB = new Date(b.publishedAt).getTime();
+
+            if (this.sortOption === 'newest') {
+                return dateB - dateA; // Newest first
+            } else {
+                return dateA - dateB; // Oldest first
+            }
+        });
     }
 
     async loadCachedArticles() {
@@ -45,7 +104,7 @@ class NewsStore {
             const cachedArticles = await articleRepository.getCachedArticles();
             if (cachedArticles.length > 0) {
                 runInAction(() => {
-                    this.articles = cachedArticles;
+                    this.articles = this.sortArticles(cachedArticles);
                 });
             }
         } catch (error) {
@@ -59,7 +118,7 @@ class NewsStore {
 
             if (storedBookmarks) {
                 runInAction(() => {
-                    this.bookmarkedArticles = JSON.parse(storedBookmarks);
+                    this.bookmarkedArticles = this.sortArticles(JSON.parse(storedBookmarks));
                 });
             }
         } catch (error) {
@@ -94,11 +153,11 @@ class NewsStore {
 
                 runInAction(() => {
                     if (category) {
-                        this.categoryArticles[category] = response.articles;
+                        this.categoryArticles[category] = this.sortArticles(response.articles);
                         // Cache category articles
                         articleRepository.cacheCategoryArticles(category, response.articles);
                     } else {
-                        this.articles = response.articles;
+                        this.articles = this.sortArticles(response.articles);
                         // Cache main articles
                         articleRepository.cacheArticles(response.articles);
                     }
@@ -114,12 +173,12 @@ class NewsStore {
                 if (category) {
                     cachedArticles = await articleRepository.getCachedCategoryArticles(category);
                     runInAction(() => {
-                        this.categoryArticles[category] = cachedArticles;
+                        this.categoryArticles[category] = this.sortArticles(cachedArticles);
                     });
                 } else {
                     cachedArticles = await articleRepository.getCachedArticles();
                     runInAction(() => {
-                        this.articles = cachedArticles;
+                        this.articles = this.sortArticles(cachedArticles);
                     });
                 }
 
@@ -143,7 +202,7 @@ class NewsStore {
                     cachedArticles = await articleRepository.getCachedCategoryArticles(category);
                     runInAction(() => {
                         if (cachedArticles.length > 0) {
-                            this.categoryArticles[category] = cachedArticles;
+                            this.categoryArticles[category] = this.sortArticles(cachedArticles);
                             this.error = 'Showing cached articles. Please check your connection.';
                         }
                     });
@@ -151,7 +210,7 @@ class NewsStore {
                     cachedArticles = await articleRepository.getCachedArticles();
                     runInAction(() => {
                         if (cachedArticles.length > 0) {
-                            this.articles = cachedArticles;
+                            this.articles = this.sortArticles(cachedArticles);
                             this.error = 'Showing cached articles. Please check your connection.';
                         }
                     });
@@ -184,7 +243,7 @@ class NewsStore {
                 const response = await newsApi.searchNews(query);
 
                 runInAction(() => {
-                    this.searchResults = response.articles;
+                    this.searchResults = this.sortArticles(response.articles);
                     this.isLoading = false;
                 });
             } else {
@@ -220,7 +279,7 @@ class NewsStore {
                 );
 
                 runInAction(() => {
-                    this.searchResults = results;
+                    this.searchResults = this.sortArticles(results);
                     this.isLoading = false;
                     if (results.length === 0) {
                         this.error = 'No matching articles found in offline mode';
@@ -244,6 +303,7 @@ class NewsStore {
             );
         } else {
             this.bookmarkedArticles.push(article);
+            this.bookmarkedArticles = this.sortArticles(this.bookmarkedArticles);
         }
 
         this.saveBookmarks();
