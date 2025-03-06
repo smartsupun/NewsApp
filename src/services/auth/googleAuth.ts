@@ -7,12 +7,13 @@ import {
     updateUser,
     setCurrentUser
 } from '../database/userRepository';
+import Constants from 'expo-constants';
 
 // Ensure WebBrowser can complete auth session
 WebBrowser.maybeCompleteAuthSession();
 
 // Your Google client ID from Google Cloud Console
-const WEB_CLIENT_ID = process.env.GOOGLE_WEB_CLIENT_ID!;
+const WEB_CLIENT_ID = Constants.expoConfig?.extra?.googleClientId;
 
 const useGoogleAuth = () => {
     // CRITICAL CHANGE: Use the Google provider with useProxy: true

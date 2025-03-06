@@ -7,6 +7,7 @@ import {
     updateUser,
     setCurrentUser
 } from '../database/userRepository';
+import Constants from 'expo-constants';
 
 // Register for redirect URI handling
 WebBrowser.maybeCompleteAuthSession();
@@ -15,7 +16,7 @@ WebBrowser.maybeCompleteAuthSession();
 const useFacebookAuth = () => {
     const [request, response, promptAsync] = AuthSession.useAuthRequest(
         {
-            clientId: process.env.FACEBOOK_APP_ID!,
+            clientId: Constants.expoConfig?.extra?.facebookAppId,
             responseType: 'token',
             redirectUri: AuthSession.makeRedirectUri({
                 scheme: 'newsapp'
