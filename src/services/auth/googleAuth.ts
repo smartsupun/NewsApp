@@ -1,4 +1,4 @@
-import * as AuthSession from 'expo-auth-session';
+import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { User } from '../../models/User';
 import {
@@ -8,52 +8,71 @@ import {
     setCurrentUser
 } from '../database/userRepository';
 
-// Register for redirect URI handling
+// Ensure WebBrowser can complete auth session
 WebBrowser.maybeCompleteAuthSession();
 
-// Get your Google client ID from Google Cloud Console
-const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; // Replace with your actual client ID
-const GOOGLE_REDIRECT_URI = AuthSession.makeRedirectUri({
-    scheme: 'newsapp'
-});
+// Your Google client ID from Google Cloud Console
+const WEB_CLIENT_ID = process.env.GOOGLE_WEB_CLIENT_ID!;
 
 const useGoogleAuth = () => {
-    const [request, response, promptAsync] = AuthSession.useAuthRequest(
+    // CRITICAL CHANGE: Use the Google provider with useProxy: true
+    const [request, response, promptAsync] = Google.useAuthRequest(
         {
-            clientId: GOOGLE_CLIENT_ID,
-            redirectUri: GOOGLE_REDIRECT_URI,
+            clientId: WEB_CLIENT_ID,
             scopes: ['profile', 'email'],
-            responseType: 'token',
         },
-        { authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth' }
+        { useProxy: true } as any // This forces auth.expo.io to be used as the redirect
     );
 
     const loginWithGoogle = async (): Promise<{ success: boolean; user?: User; message?: string }> => {
         try {
+            console.log("Starting Google login...");
+
+            // Prompt with no additional options - let the provider handle it
             const result = await promptAsync();
+            console.log("Auth result type:", result.type);
 
             if (result.type === 'success') {
-                const { access_token } = result.params;
+                // Get the authentication object which contains the accessToken
+                const { authentication } = result;
 
-                // Fetch user info from Google
+                if (!authentication) {
+                    console.log("No authentication token received");
+                    return {
+                        success: false,
+                        message: 'Failed to get authentication token from Google'
+                    };
+                }
+
+                console.log("Token received successfully");
+
+                // Fetch user info using the access token
                 const userInfoResponse = await fetch(
                     'https://www.googleapis.com/userinfo/v2/me',
                     {
-                        headers: { Authorization: `Bearer ${access_token}` }
+                        headers: { Authorization: `Bearer ${authentication.accessToken}` }
                     }
                 );
 
-                const googleUserInfo = await userInfoResponse.json();
+                if (!userInfoResponse.ok) {
+                    console.log("Failed to fetch user info, status:", userInfoResponse.status);
+                    throw new Error('Failed to fetch user info from Google');
+                }
 
-                // Check if user already exists
+                const googleUserInfo = await userInfoResponse.json();
+                console.log("Received user info:", googleUserInfo.email);
+
+                // Check if user already exists in your database
                 let user = await getUserByEmail(googleUserInfo.email, 'google');
 
                 if (user) {
-                    // Update existing user
+                    // Update existing user's last login time
+                    console.log("Updating existing user");
                     user.lastLoginAt = new Date();
                     await updateUser(user);
                 } else {
-                    // Create new user
+                    // Create new user in your database
+                    console.log("Creating new user");
                     user = await createUser({
                         id: `google_${googleUserInfo.id}`,
                         firstName: googleUserInfo.given_name,
@@ -66,22 +85,34 @@ const useGoogleAuth = () => {
                     });
                 }
 
-                // Set as current user
+                // Set as current user in your app
                 await setCurrentUser(user);
+                console.log("Authentication successful");
 
                 return { success: true, user };
+            } else if (result.type === 'cancel') {
+                console.log("Authentication cancelled by user");
+                return {
+                    success: false,
+                    message: 'Authentication cancelled by user'
+                };
             } else {
-                return { success: false, message: 'Google authentication was cancelled or failed' };
+                console.log("Authentication failed with result type:", result.type);
+                return {
+                    success: false,
+                    message: `Google authentication failed: ${result.type}`
+                };
             }
         } catch (error) {
             console.error('Google login error:', error);
-            return { success: false, message: 'Google login failed. Please try again.' };
+            return {
+                success: false,
+                message: `Google login failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+            };
         }
     };
 
     return {
-        request,
-        response,
         loginWithGoogle
     };
 };

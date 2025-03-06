@@ -23,7 +23,11 @@ export default {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#fff"
       },
-      package: 'com.newsapp.dev'
+      package: 'com.hsd_apps.newsapp',
+      permissions: [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     scheme: "newsapp",
     plugins: [
@@ -41,6 +45,9 @@ export default {
       eas: {
         projectId: "a07c2c8e-b8a4-4834-a979-7e7c58f5f46d"
       }
+    },
+    web: {
+      bundler: "metro"
     },
 
     owner: "hsd_apps",
