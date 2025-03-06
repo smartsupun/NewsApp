@@ -31,12 +31,6 @@ const ProfileScreen = observer(() => {
         return null; // Should never happen due to auth protection in routes
     }
 
-    console.log('Biometric availability:', {
-        available: authStore.isBiometricAvailable,
-        type: authStore.biometricType,
-        userHasEnabled: authStore.currentUser?.preferences?.biometricEnabled
-    });
-
     const handleLogout = async () => {
         const result = await authStore.logout();
 
