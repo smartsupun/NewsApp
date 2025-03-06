@@ -1,4 +1,3 @@
-// app.config.js
 import 'dotenv/config';
 
 export default {
