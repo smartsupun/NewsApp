@@ -44,7 +44,6 @@ export default {
     ]
   ],
   extra: {
-    // Environment variables will be accessible here
     facebookAppId: process.env.EXPO_FACEBOOK_APP_ID,
     googleClientId: process.env.EXPO_GOOGLE_CLIENT_ID,
     newsApiId: process.env.EXPO_NEWS_API_ID,
@@ -58,4 +57,10 @@ export default {
   },
   owner: "hsd_apps",
   runtimeVersion: "1.0.0",
+  updates: {
+    url: "https://u.expo.dev/a07c2c8e-b8a4-4834-a979-7e7c58f5f46d",
+    enabled: true,
+    checkAutomatically: "ON_LOAD",
+    fallbackToCacheTimeout: 0
+  }
 };

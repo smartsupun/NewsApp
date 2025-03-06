@@ -1,0 +1,36 @@
+{
+    "cli": {
+        "version": ">= 7.6.2"
+    },
+    "build": {
+        "development": {
+            "node": "20.11.1",
+            "developmentClient": true,
+            "channel": "development",
+            "distribution": "internal",
+            "env": {
+                "EXPO_FACEBOOK_APP_ID": 599520879746921,
+                "EXPO_GOOGLE_CLIENT_ID": "101566213848-fe6a8n483k4uf9pvg3g9o3qhp5i8ahnn.apps.googleusercontent.com",
+                "EXPO_NEWS_API_ID": "e3cb147b60e54b6896bfd472623aed99",
+                "EXPO_NEWS_API_URL": "https://newsapi.org/v2"
+            }
+        },
+        "test": {
+            "node": "20.11.1",
+            "distribution": "internal",
+            "channel": "test",
+            "android": {
+                "buildType": "apk"
+            },
+            "env": {
+                "EXPO_FACEBOOK_APP_ID": 599520879746921,
+                "EXPO_GOOGLE_CLIENT_ID": "101566213848-fe6a8n483k4uf9pvg3g9o3qhp5i8ahnn.apps.googleusercontent.com",
+                "EXPO_NEWS_API_ID": "e3cb147b60e54b6896bfd472623aed99",
+                "EXPO_NEWS_API_URL": "https://newsapi.org/v2"
+            }
+        }
+    },
+    "submit": {
+        "production": {}
+    }
+}
