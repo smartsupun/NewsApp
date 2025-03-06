@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Switch, Alert, ScrollView, TextInput } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { FontAwesome } from '@expo/vector-icons';
@@ -18,14 +18,25 @@ import {
     RADIUS,
     FONT_SIZE
 } from '../../src/utils/constants';
+
 const ProfileScreen = observer(() => {
+    // Initialize profile image from the current user's profilePicture
+    const [profileImage, setProfileImage] = useState<string | null>(
+        authStore.currentUser?.profilePicture || null
+    );
     const [isEditingPassword, setIsEditingPassword] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
-    const [profileImage, setProfileImage] = useState<string | null>(null);
+
+    // Update profile image when currentUser changes
+    useEffect(() => {
+        if (authStore.currentUser?.profilePicture) {
+            setProfileImage(authStore.currentUser.profilePicture);
+        }
+    }, [authStore.currentUser]);
 
     if (!authStore.currentUser) {
         return null; // Should never happen due to auth protection in routes
@@ -118,10 +129,17 @@ const ProfileScreen = observer(() => {
             });
 
             if (!result.canceled && result.assets[0].uri) {
-                setProfileImage(result.assets[0].uri);
+                const imageUri = result.assets[0].uri;
 
-                // Here you would typically upload the image and update the user profile
-                // For now, we'll just update the UI
+                // Update local state immediately for responsive UI
+                setProfileImage(imageUri);
+
+                // Use the AuthStore's updateProfilePicture method to save the image
+                const updateResult = await authStore.updateProfilePicture(imageUri);
+
+                if (!updateResult.success) {
+                    Alert.alert('Error', updateResult.message || 'Failed to save profile picture');
+                }
             }
         } catch (error) {
             console.error('Error taking photo:', error);
@@ -326,7 +344,6 @@ const ProfileScreen = observer(() => {
                 </View>
             </ScrollView>
         </SafeAreaView>
-
     );
 });
 
@@ -510,6 +527,6 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.md,
         fontSize: FONT_SIZE.lg,
     }
-
 });
+
 export default ProfileScreen;

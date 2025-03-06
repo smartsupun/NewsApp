@@ -5,7 +5,8 @@ import {
     clearCurrentUser,
     getActiveAccounts,
     addActiveAccount,
-    removeActiveAccount
+    removeActiveAccount,
+    updateUser
 } from '../database/userRepository';
 import { User } from '../../models/User';
 import { checkBiometricAvailability } from '../auth/biometricAuth';
@@ -164,6 +165,90 @@ class AuthStore {
 
             return { success: true };
         } catch (error: any) {
+            return { success: false, message: error.message };
+        }
+    }
+
+    async updateUserProfile(userData: Partial<User>) {
+        this.isLoading = true;
+
+        try {
+            if (!this.currentUser) {
+                throw new Error('No user is currently logged in');
+            }
+
+            // Create an updated user object with the new data
+            const updatedUser = new User({
+                ...this.currentUser,
+                ...userData
+            });
+
+            // Save to the database
+            await updateUser(updatedUser);
+
+            // Update the current user in storage
+            await setCurrentUserInDb(updatedUser);
+
+            runInAction(() => {
+                this.currentUser = updatedUser;
+
+                // Update in active accounts as well
+                this.activeAccounts = this.activeAccounts.map(account =>
+                    account.id === updatedUser.id ? updatedUser : account
+                );
+
+                this.isLoading = false;
+            });
+
+            return { success: true };
+        } catch (error: any) {
+            runInAction(() => {
+                this.error = error.message || 'Failed to update profile';
+                this.isLoading = false;
+            });
+
+            return { success: false, message: error.message };
+        }
+    }
+
+    async updateProfilePicture(imageUri: string) {
+        this.isLoading = true;
+
+        try {
+            if (!this.currentUser) {
+                throw new Error('No user is currently logged in');
+            }
+
+            // Create updated user with the new profile picture
+            const updatedUser = new User({
+                ...this.currentUser,
+                profilePicture: imageUri
+            });
+
+            // Save to the database
+            await updateUser(updatedUser);
+
+            // Update the current user in storage
+            await setCurrentUserInDb(updatedUser);
+
+            runInAction(() => {
+                this.currentUser = updatedUser;
+
+                // Update in active accounts as well
+                this.activeAccounts = this.activeAccounts.map(account =>
+                    account.id === updatedUser.id ? updatedUser : account
+                );
+
+                this.isLoading = false;
+            });
+
+            return { success: true };
+        } catch (error: any) {
+            runInAction(() => {
+                this.error = error.message || 'Failed to update profile picture';
+                this.isLoading = false;
+            });
+
             return { success: false, message: error.message };
         }
     }
