@@ -10,6 +10,7 @@ import newsStore from '../../src/services/stores/newsStore';
 import settingsStore from '../../src/services/stores/settingsStore';
 import colors from '../../src/theme/colors';
 import typography from '../../src/theme/typography';
+import OfflineNotice from '../../src/components/common/OfflineNotice';
 
 const HomeScreen = observer(() => {
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -41,6 +42,7 @@ const HomeScreen = observer(() => {
 
     return (
         <SafeAreaView style={[styles.container, settingsStore.darkMode && styles.darkContainer]}>
+            <OfflineNotice />
             <SearchBar />
 
             <CategoryList

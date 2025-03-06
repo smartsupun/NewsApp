@@ -25,7 +25,13 @@ export default {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#fff"
     },
-    package: 'com.hsd_apps.newsapp'
+    package: 'com.hsd_apps.newsapp',
+    permissions: [
+      "android.permission.INTERNET",
+      "android.permission.ACCESS_NETWORK_STATE",
+      "android.permission.USE_BIOMETRIC",
+      "android.permission.USE_FINGERPRINT"
+    ],
   },
   scheme: "newsapp",
   plugins: [
