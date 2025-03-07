@@ -1,0 +1,46 @@
+# Exclude node_modules (these will be installed during the build process)
+node_modules
+
+# Exclude version control files
+.git
+.gitignore
+
+# Exclude development files
+.vscode
+.idea
+
+# Exclude test files
+__tests__
+*.test.js
+*.spec.js
+
+# Exclude documentation
+docs
+*.md
+
+# Exclude log files
+*.log
+
+# Exclude temporary files
+*.tmp
+*.temp
+
+# Exclude OS generated files
+.DS_Store
+Thumbs.db
+
+# Exclude environment files (be careful with this, ensure your CI/CD process handles env variables)
+.env*
+
+# Exclude any build outputs
+build
+dist
+
+# Exclude large assets not needed for the build (adjust as needed)
+# assets/videos
+# assets/large-images
+
+# Exclude any other large files or directories not needed for the build
+# For example:
+# large-data-file.json
+# unnecessary-assets/

@@ -1,4 +1,3 @@
-// app/(app)/index.tsx
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, StyleSheet, RefreshControl, Text, ActivityIndicator } from 'react-native';
 import { observer } from 'mobx-react-lite';
@@ -6,11 +5,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ArticleCard from '../../src/components/news/ArticleCard';
 import SearchBar from '../../src/components/news/SearchBar';
 import CategoryList from '../../src/components/news/CategoryList';
-import newsStore from '../../src/services/stores/newsStore';
+import SortOptions from '../../src/components/news/SortOptions';
+import newsStore, { SortOption } from '../../src/services/stores/newsStore';
 import settingsStore from '../../src/services/stores/settingsStore';
 import colors from '../../src/theme/colors';
 import typography from '../../src/theme/typography';
-
+import OfflineNotice from '../../src/components/common/OfflineNotice';
+import {
+    verticalScale,
+    SPACING,
+    FONT_SIZE,
+    IS_LARGE_DEVICE
+} from '../../src/utils/constants';
 const HomeScreen = observer(() => {
     const [selectedCategory, setSelectedCategory] = useState('');
     const [refreshing, setRefreshing] = useState(false);
@@ -29,6 +35,10 @@ const HomeScreen = observer(() => {
         setSelectedCategory(category);
     };
 
+    const handleSortChange = (option: SortOption) => {
+        newsStore.setSortOption(option);
+    };
+
     useEffect(() => {
         loadArticles();
     }, [selectedCategory]);
@@ -40,12 +50,21 @@ const HomeScreen = observer(() => {
             : newsStore.articles;
 
     return (
-        <SafeAreaView style={[styles.container, settingsStore.darkMode && styles.darkContainer]}>
+        <SafeAreaView
+            style={[styles.container, settingsStore.darkMode && styles.darkContainer]}
+            edges={['right', 'left']}         >
+
+            <OfflineNotice />
             <SearchBar />
 
             <CategoryList
                 selectedCategory={selectedCategory}
                 onSelectCategory={handleCategorySelect}
+            />
+
+            <SortOptions
+                currentSort={newsStore.sortOption}
+                onSortChange={handleSortChange}
             />
 
             {newsStore.isLoading && !refreshing ? (
@@ -88,8 +107,21 @@ const styles = StyleSheet.create({
     darkContainer: {
         backgroundColor: colors.darkBackground,
     },
+    header: {
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.sm,
+        backgroundColor: colors.primary,
+        height: verticalScale(56),
+        justifyContent: 'center',
+    },
+    headerTitle: {
+        ...typography.h1,
+        color: '#ffffff',
+        fontSize: FONT_SIZE.xxl,
+    },
     listContent: {
-        padding: 16,
+        padding: SPACING.md,
+        paddingBottom: SPACING.xl,
     },
     loadingContainer: {
         flex: 1,
@@ -100,16 +132,19 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        padding: SPACING.lg,
     },
     emptyText: {
         ...typography.body,
         color: colors.textSecondary,
         textAlign: 'center',
+        fontSize: FONT_SIZE.md,
+        lineHeight: FONT_SIZE.md * 1.5,
+        maxWidth: IS_LARGE_DEVICE ? '60%' : '80%',
     },
     darkText: {
         color: colors.darkTextSecondary,
-    },
+    }
 });
 
 export default HomeScreen;

@@ -1,25 +1,39 @@
-// src/components/news/ArticleCard.tsx
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { observer } from 'mobx-react-lite';
 import { Article } from '../../models/Article';
 import newsStore from '../../services/stores/newsStore';
 import settingsStore from '../../services/stores/settingsStore';
 import colors from '../../theme/colors';
 import typography from '../../theme/typography';
-
+import {
+    scale,
+    verticalScale,
+    SPACING,
+    RADIUS,
+    FONT_SIZE
+} from '../../../src/utils/constants';
 interface ArticleCardProps {
     article: Article;
     showBookmarkButton?: boolean;
 }
 
-const ArticleCard = ({ article, showBookmarkButton = true }: ArticleCardProps) => {
-    const formattedDate = new Date(article.publishedAt).toLocaleDateString();
+const ArticleCard = observer(({ article, showBookmarkButton = true }: ArticleCardProps) => {
+    const publishedDate = new Date(article.publishedAt);
+
+    const formattedDate = publishedDate.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
     const isBookmarked = newsStore.isBookmarked(article.url);
 
     const handlePress = () => {
-        // Navigate to article detail, encoding the URL to use as a parameter
         router.push(`/article/${encodeURIComponent(article.url)}`);
     };
 
@@ -61,7 +75,9 @@ const ArticleCard = ({ article, showBookmarkButton = true }: ArticleCardProps) =
                 {showBookmarkButton && (
                     <TouchableOpacity
                         style={styles.bookmarkButton}
-                        onPress={() => newsStore.toggleBookmark(article)}
+                        onPress={() => {
+                            newsStore.toggleBookmark(article);
+                        }}
                     >
                         <FontAwesome
                             name={isBookmarked ? "bookmark" : "bookmark-o"}
@@ -73,41 +89,44 @@ const ArticleCard = ({ article, showBookmarkButton = true }: ArticleCardProps) =
             </View>
         </TouchableOpacity>
     );
-};
+});
 
 const styles = StyleSheet.create({
     card: {
         backgroundColor: colors.surface,
-        borderRadius: 12,
+        borderRadius: RADIUS.md,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
-        marginBottom: 16,
+        marginBottom: SPACING.md,
         overflow: 'hidden',
+        width: '100%',
     },
     darkCard: {
         backgroundColor: colors.darkSurface,
     },
     image: {
-        height: 180,
+        height: verticalScale(180),
         width: '100%',
     },
     placeholderImage: {
-        height: 180,
+        height: verticalScale(180),
         width: '100%',
         backgroundColor: colors.background,
         justifyContent: 'center',
         alignItems: 'center',
     },
     content: {
-        padding: 16,
+        padding: SPACING.md,
     },
     title: {
         ...typography.h2,
         color: colors.text,
-        marginBottom: 8,
+        marginBottom: SPACING.sm,
+        fontSize: FONT_SIZE.lg,
+        lineHeight: FONT_SIZE.lg * 1.3,
     },
     darkText: {
         color: colors.darkText,
@@ -115,7 +134,8 @@ const styles = StyleSheet.create({
     source: {
         ...typography.caption,
         color: colors.textSecondary,
-        marginBottom: 8,
+        marginBottom: SPACING.sm,
+        fontSize: FONT_SIZE.sm,
     },
     darkSubText: {
         color: colors.darkTextSecondary,
@@ -123,13 +143,22 @@ const styles = StyleSheet.create({
     description: {
         ...typography.body,
         color: colors.text,
+        fontSize: FONT_SIZE.md,
+        lineHeight: FONT_SIZE.md * 1.4,
     },
     bookmarkButton: {
         position: 'absolute',
-        top: 16,
-        right: 16,
-        padding: 8,
-    },
+        top: SPACING.md,
+        right: SPACING.md,
+        padding: SPACING.sm,
+        backgroundColor: 'rgba(255,255,255,0.7)',
+        borderRadius: RADIUS.round,
+        width: scale(40),
+        height: scale(40),
+        alignItems: 'center',
+        justifyContent: 'center',
+    }
+
 });
 
 export default ArticleCard;

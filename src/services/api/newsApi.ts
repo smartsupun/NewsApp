@@ -1,8 +1,8 @@
-// src/services/api/newsApi.ts
+import Constants from 'expo-constants';
 import { ArticleResponse } from '../../models/Article';
 
-const API_KEY = process.env.NEWS_API_KEY;
-const BASE_URL = process.env.NEWS_API_BASE_URL;
+const API_KEY = Constants.expoConfig?.extra?.newsApiId;
+const BASE_URL = Constants.expoConfig?.extra?.newsApiUrl;
 
 export const fetchTopHeadlines = async (
     country = 'us',

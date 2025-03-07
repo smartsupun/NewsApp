@@ -1,5 +1,4 @@
-// app/(app)/profile.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Switch, Alert, ScrollView, TextInput } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { FontAwesome } from '@expo/vector-icons';
@@ -12,25 +11,36 @@ import { enableBiometricAuth, disableBiometricAuth } from '../../src/services/au
 import { changePassword, verifyPassword } from '../../src/services/database/userRepository';
 import colors from '../../src/theme/colors';
 import typography from '../../src/theme/typography';
+import {
+    scale,
+    verticalScale,
+    SPACING,
+    RADIUS,
+    FONT_SIZE
+} from '../../src/utils/constants';
 
 const ProfileScreen = observer(() => {
+    // Initialize profile image from the current user's profilePicture
+    const [profileImage, setProfileImage] = useState<string | null>(
+        authStore.currentUser?.profilePicture || null
+    );
     const [isEditingPassword, setIsEditingPassword] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
-    const [profileImage, setProfileImage] = useState<string | null>(null);
+
+    // Update profile image when currentUser changes
+    useEffect(() => {
+        if (authStore.currentUser?.profilePicture) {
+            setProfileImage(authStore.currentUser.profilePicture);
+        }
+    }, [authStore.currentUser]);
 
     if (!authStore.currentUser) {
         return null; // Should never happen due to auth protection in routes
     }
-
-    console.log('Biometric availability:', {
-        available: authStore.isBiometricAvailable,
-        type: authStore.biometricType,
-        userHasEnabled: authStore.currentUser?.preferences?.biometricEnabled
-    });
 
     const handleLogout = async () => {
         const result = await authStore.logout();
@@ -119,10 +129,17 @@ const ProfileScreen = observer(() => {
             });
 
             if (!result.canceled && result.assets[0].uri) {
-                setProfileImage(result.assets[0].uri);
+                const imageUri = result.assets[0].uri;
 
-                // Here you would typically upload the image and update the user profile
-                // For now, we'll just update the UI
+                // Update local state immediately for responsive UI
+                setProfileImage(imageUri);
+
+                // Use the AuthStore's updateProfilePicture method to save the image
+                const updateResult = await authStore.updateProfilePicture(imageUri);
+
+                if (!updateResult.success) {
+                    Alert.alert('Error', updateResult.message || 'Failed to save profile picture');
+                }
             }
         } catch (error) {
             console.error('Error taking photo:', error);
@@ -327,7 +344,6 @@ const ProfileScreen = observer(() => {
                 </View>
             </ScrollView>
         </SafeAreaView>
-
     );
 });
 
@@ -341,33 +357,33 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         flexGrow: 1,
-        paddingHorizontal: 16,
-        paddingBottom: 24,
+        paddingHorizontal: SPACING.md,
+        paddingBottom: SPACING.lg,
     },
     profileHeader: {
         alignItems: 'center',
-        paddingVertical: 24,
+        paddingVertical: SPACING.xl,
     },
     profileImageContainer: {
         position: 'relative',
-        marginBottom: 16,
+        marginBottom: SPACING.md,
     },
     profileImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: scale(100),
+        height: scale(100),
+        borderRadius: scale(50),
     },
     profilePlaceholder: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: scale(100),
+        height: scale(100),
+        borderRadius: scale(50),
         backgroundColor: colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
     },
     profilePlaceholderText: {
         color: 'white',
-        fontSize: 40,
+        fontSize: FONT_SIZE.title,
         fontWeight: 'bold',
     },
     cameraIcon: {
@@ -375,9 +391,9 @@ const styles = StyleSheet.create({
         bottom: 0,
         right: 0,
         backgroundColor: colors.primary,
-        width: 32,
-        height: 32,
-        borderRadius: 16,
+        width: scale(32),
+        height: scale(32),
+        borderRadius: scale(16),
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 2,
@@ -386,19 +402,23 @@ const styles = StyleSheet.create({
     profileName: {
         ...typography.h2,
         color: colors.text,
-        marginBottom: 4,
+        marginBottom: SPACING.xs,
+        fontSize: FONT_SIZE.xl,
+        textAlign: 'center',
     },
     profileEmail: {
         ...typography.body,
         color: colors.textSecondary,
+        fontSize: FONT_SIZE.md,
     },
     optionRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 12,
+        paddingVertical: SPACING.md,
         borderBottomWidth: 1,
         borderBottomColor: colors.divider,
+        minHeight: verticalScale(56),
     },
     optionInfo: {
         flexDirection: 'row',
@@ -407,7 +427,8 @@ const styles = StyleSheet.create({
     optionText: {
         ...typography.body,
         color: colors.text,
-        marginLeft: 12,
+        marginLeft: SPACING.md,
+        fontSize: FONT_SIZE.md,
     },
     darkText: {
         color: colors.darkText,
@@ -420,26 +441,29 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 12,
-        borderRadius: 8,
+        paddingVertical: SPACING.md,
+        borderRadius: RADIUS.sm,
+        height: verticalScale(50),
     },
     logoutText: {
         color: 'white',
         fontWeight: 'bold',
-        marginLeft: 8,
+        marginLeft: SPACING.sm,
+        fontSize: FONT_SIZE.md,
     },
     passwordForm: {
-        marginTop: 8,
+        marginTop: SPACING.sm,
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
         borderColor: colors.divider,
-        borderRadius: 8,
-        marginBottom: 16,
-        paddingHorizontal: 12,
+        borderRadius: RADIUS.sm,
+        marginBottom: SPACING.md,
+        paddingHorizontal: SPACING.md,
         backgroundColor: colors.surface,
+        height: verticalScale(48),
     },
     darkInputContainer: {
         backgroundColor: colors.darkSurface,
@@ -447,25 +471,30 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        paddingVertical: 12,
+        paddingVertical: SPACING.md,
         color: colors.text,
+        fontSize: FONT_SIZE.md,
     },
     darkInput: {
         color: colors.darkText,
     },
     eyeIcon: {
-        padding: 8,
+        padding: SPACING.sm,
+        height: '100%',
+        justifyContent: 'center',
     },
     buttonRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 8,
+        marginTop: SPACING.sm,
     },
     button: {
         flex: 0.48,
-        paddingVertical: 12,
-        borderRadius: 8,
+        paddingVertical: SPACING.md,
+        borderRadius: RADIUS.sm,
         alignItems: 'center',
+        height: verticalScale(48),
+        justifyContent: 'center',
     },
     cancelButton: {
         backgroundColor: '#6c757d',
@@ -476,12 +505,13 @@ const styles = StyleSheet.create({
     buttonText: {
         color: 'white',
         fontWeight: 'bold',
+        fontSize: FONT_SIZE.md,
     },
     section: {
         backgroundColor: colors.surface,
-        borderRadius: 12,
-        padding: 16,
-        marginTop: 16,
+        borderRadius: RADIUS.md,
+        padding: SPACING.md,
+        marginTop: SPACING.md,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -494,11 +524,9 @@ const styles = StyleSheet.create({
     sectionTitle: {
         ...typography.h2,
         color: colors.text,
-        marginBottom: 16,
-    },
-    darkSectionTitle: {
-        color: colors.darkText,
-    },
+        marginBottom: SPACING.md,
+        fontSize: FONT_SIZE.lg,
+    }
 });
 
 export default ProfileScreen;

@@ -21,6 +21,17 @@ import authStore from '../../src/services/stores/authStore';
 import settingsStore from '../../src/services/stores/settingsStore';
 import colors from '../../src/theme/colors';
 import typography from '../../src/theme/typography';
+import {
+    scale,
+    verticalScale,
+    SPACING,
+    RADIUS,
+    FONT_SIZE,
+    SCREEN_WIDTH,
+    SCREEN_HEIGHT,
+    IS_LANDSCAPE,
+    IS_LARGE_DEVICE
+} from '../../src/utils/constants';
 
 // Form validation schema
 const validationSchema = yup.object().shape({
@@ -470,37 +481,46 @@ const RegisterScreen = observer(() => {
 const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingTop: 40,
-        paddingBottom: 24,
+        paddingHorizontal: SPACING.lg,
+        paddingTop: verticalScale(40),
+        paddingBottom: SPACING.lg,
         backgroundColor: colors.background,
+        minHeight: SCREEN_HEIGHT,
     },
     darkContainer: {
         backgroundColor: colors.darkBackground,
     },
     headerContainer: {
-        marginBottom: 24,
+        marginBottom: SPACING.lg,
+        width: '100%',
     },
     headerText: {
         ...typography.h1,
         color: colors.text,
+        fontSize: FONT_SIZE.display,
+        marginBottom: SPACING.xs,
     },
     subHeaderText: {
         ...typography.subtitle,
         color: colors.textSecondary,
+        fontSize: FONT_SIZE.md,
+        lineHeight: FONT_SIZE.md * 1.4,
+        width: '90%',
     },
     socialContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 20,
+        marginBottom: SPACING.lg,
+        width: '100%',
     },
     socialButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 12,
-        borderRadius: 8,
+        paddingVertical: SPACING.md,
+        borderRadius: RADIUS.sm,
         flex: 0.48,
+        height: verticalScale(48),
     },
     facebookButton: {
         backgroundColor: '#3b5998',
@@ -511,12 +531,14 @@ const styles = StyleSheet.create({
     socialButtonText: {
         color: 'white',
         fontWeight: '600',
-        marginLeft: 8,
+        marginLeft: SPACING.sm,
+        fontSize: FONT_SIZE.md,
     },
     dividerContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: SPACING.lg,
+        width: '100%',
     },
     divider: {
         flex: 1,
@@ -524,15 +546,18 @@ const styles = StyleSheet.create({
         backgroundColor: colors.divider,
     },
     dividerText: {
-        marginHorizontal: 10,
+        marginHorizontal: SPACING.sm,
         color: colors.textSecondary,
+        fontSize: FONT_SIZE.md,
     },
     formContainer: {
-        marginBottom: 20,
+        marginBottom: SPACING.lg,
+        width: '100%',
     },
     nameContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        width: '100%',
     },
     halfWidth: {
         width: '48%',
@@ -542,18 +567,21 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: colors.divider,
-        borderRadius: 8,
-        marginBottom: 16,
-        paddingHorizontal: 12,
+        borderRadius: RADIUS.sm,
+        marginBottom: SPACING.md,
+        paddingHorizontal: SPACING.md,
         backgroundColor: colors.surface,
+        height: verticalScale(48),
     },
     inputError: {
         borderColor: colors.error,
     },
     input: {
         flex: 1,
-        paddingVertical: 12,
+        paddingVertical: SPACING.md,
         color: colors.text,
+        fontSize: FONT_SIZE.md,
+        height: '100%',
     },
     placeholderText: {
         color: '#999',
@@ -566,30 +594,36 @@ const styles = StyleSheet.create({
         color: colors.darkText,
     },
     eyeIcon: {
-        padding: 8,
+        padding: SPACING.sm,
+        height: '100%',
+        justifyContent: 'center',
     },
     icon: {
-        padding: 8,
+        padding: SPACING.sm,
+        height: '100%',
+        justifyContent: 'center',
     },
     errorText: {
         color: colors.error,
-        fontSize: 12,
-        marginTop: -12,
-        marginBottom: 16,
-        marginLeft: 4,
+        fontSize: FONT_SIZE.xs,
+        marginTop: -SPACING.xs,
+        marginBottom: SPACING.md,
+        marginLeft: SPACING.xs,
     },
     termsContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: SPACING.md,
+        width: '100%',
+        paddingVertical: SPACING.xs,
     },
     checkbox: {
-        width: 20,
-        height: 20,
-        borderRadius: 4,
+        width: scale(20),
+        height: scale(20),
+        borderRadius: RADIUS.xs,
         borderWidth: 1,
         borderColor: colors.divider,
-        marginRight: 10,
+        marginRight: SPACING.sm,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -603,7 +637,7 @@ const styles = StyleSheet.create({
     termsText: {
         flex: 1,
         color: colors.text,
-        fontSize: 14,
+        fontSize: FONT_SIZE.md,
     },
     termsLink: {
         color: colors.primary,
@@ -611,38 +645,48 @@ const styles = StyleSheet.create({
     },
     registerButton: {
         backgroundColor: colors.primary,
-        paddingVertical: 14,
-        borderRadius: 8,
+        paddingVertical: SPACING.md,
+        borderRadius: RADIUS.sm,
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: SPACING.lg,
+        width: '100%',
+        height: verticalScale(50),
+        justifyContent: 'center',
     },
     registerButtonText: {
         color: 'white',
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: FONT_SIZE.lg,
     },
     loginContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginBottom: 30,
+        marginBottom: SPACING.xl,
+        width: '100%',
     },
     loginText: {
         color: colors.textSecondary,
+        fontSize: FONT_SIZE.md,
     },
     loginLink: {
         color: colors.primary,
         fontWeight: 'bold',
-        marginLeft: 5,
+        marginLeft: SPACING.xs,
+        fontSize: FONT_SIZE.md,
     },
     darkModeToggle: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 10,
+        padding: SPACING.sm,
+        marginTop: SPACING.sm,
+        width: '100%',
+        height: verticalScale(44),
     },
     darkModeText: {
-        marginLeft: 8,
+        marginLeft: SPACING.sm,
         color: colors.text,
+        fontSize: FONT_SIZE.md,
     },
     darkText: {
         color: colors.darkText,
@@ -655,6 +699,67 @@ const styles = StyleSheet.create({
     },
     darkLinkText: {
         color: colors.primaryLight,
+    },
+    scrollViewContent: {
+        flexGrow: 1,
+        minHeight: SCREEN_HEIGHT,
+    },
+    keyboardAvoidingView: {
+        flex: 1,
+        width: SCREEN_WIDTH,
+    },
+    landscapeAdjustment: {
+        paddingHorizontal: IS_LANDSCAPE ? SPACING.xxl : SPACING.lg,
+    },
+    tabletAdjustment: {
+        paddingHorizontal: IS_LARGE_DEVICE ? SPACING.xxl : SPACING.lg,
+        maxWidth: IS_LARGE_DEVICE ? 600 : '100%',
+        alignSelf: 'center',
+    },
+    validInput: {
+        borderColor: colors.accent,
+    },
+    validationIcon: {
+        padding: SPACING.sm,
+        height: '100%',
+        justifyContent: 'center',
+    },
+    passwordStrengthContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: -SPACING.xs,
+        marginBottom: SPACING.sm,
+        width: '100%',
+    },
+    strengthIndicator: {
+        height: verticalScale(4),
+        flex: 1,
+        borderRadius: RADIUS.xs,
+        marginRight: SPACING.xs,
+        backgroundColor: colors.divider,
+    },
+    strengthWeak: {
+        backgroundColor: '#FF4D4F',
+    },
+    strengthMedium: {
+        backgroundColor: '#FAAD14',
+    },
+    strengthStrong: {
+        backgroundColor: '#52C41A',
+    },
+    datePickerButton: {
+        alignSelf: 'flex-start',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: SPACING.xs,
+        marginTop: -SPACING.xs,
+        marginBottom: SPACING.sm,
+    },
+    datePickerText: {
+        color: colors.primary,
+        marginLeft: SPACING.xs,
+        fontSize: FONT_SIZE.sm,
     },
 });
 

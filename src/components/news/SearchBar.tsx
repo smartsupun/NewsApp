@@ -1,4 +1,3 @@
-// src/components/news/SearchBar.tsx
 import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
@@ -6,6 +5,12 @@ import { observer } from 'mobx-react-lite';
 import newsStore from '../../services/stores/newsStore';
 import settingsStore from '../../services/stores/settingsStore';
 import colors from '../../theme/colors';
+import {
+    verticalScale,
+    SPACING,
+    RADIUS,
+    FONT_SIZE,
+} from '../../../src/utils/constants';
 
 interface SearchBarProps {
     placeholder?: string;
@@ -31,7 +36,7 @@ const SearchBar = observer(({ placeholder = 'Search news...' }: SearchBarProps) 
             ]}>
                 <FontAwesome
                     name="search"
-                    size={20}
+                    size={13}
                     color={settingsStore.darkMode ? colors.darkTextSecondary : colors.textSecondary}
                 />
 
@@ -61,16 +66,18 @@ const SearchBar = observer(({ placeholder = 'Search news...' }: SearchBarProps) 
 
 const styles = StyleSheet.create({
     container: {
-        padding: 16,
+        padding: SPACING.md,
+        width: '100%',
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: colors.surface,
-        borderRadius: 8,
-        padding: 12,
+        borderRadius: RADIUS.sm,
+        padding: SPACING.md,
         borderWidth: 1,
         borderColor: colors.divider,
+        height: verticalScale(48),
     },
     darkSearchContainer: {
         backgroundColor: colors.darkSurface,
@@ -78,13 +85,13 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        marginLeft: 10,
+        marginLeft: SPACING.sm,
         color: colors.text,
-        fontSize: 16,
+        fontSize: FONT_SIZE.md,
     },
     darkInput: {
         color: colors.darkText,
-    },
+    }
 });
 
 export default SearchBar;
