@@ -111,6 +111,7 @@ android {
 
     namespace 'com.hsd_apps.newsapp'
     defaultConfig {
+        manifestPlaceholders = [appAuthRedirectScheme: 'com.hsd_apps.newsapp']
         applicationId 'com.hsd_apps.newsapp'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion

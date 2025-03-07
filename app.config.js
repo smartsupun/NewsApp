@@ -32,7 +32,7 @@ export default {
       "android.permission.USE_FINGERPRINT"
     ],
   },
-  scheme: "newsapp",
+  scheme: "com.hsd_apps.newsapp",
   plugins: [
     "expo-router",
     "expo-notifications",
