@@ -1,6 +1,5 @@
 // src/services/notifications/notificationService.ts
 
-import { Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
@@ -90,14 +89,14 @@ export const registerForPushNotifications = async (user: User): Promise<string |
 };
 
 // Get stored push token
-export const getPushToken = async (): Promise<string | null> => {
-    try {
-        return await AsyncStorage.getItem(NOTIFICATION_TOKEN_KEY);
-    } catch (error) {
-        console.error('Error getting push token:', error);
-        return null;
-    }
-};
+// export const getPushToken = async (): Promise<string | null> => {
+//     try {
+//         return await AsyncStorage.getItem(NOTIFICATION_TOKEN_KEY);
+//     } catch (error) {
+//         console.error('Error getting push token:', error);
+//         return null;
+//     }
+// };
 
 // Save notification settings
 export const saveNotificationSettings = async (settings: NotificationSettings): Promise<void> => {
@@ -156,22 +155,22 @@ export const sendImmediateNotification = async (
 };
 
 // Cancel a scheduled notification
-export const cancelScheduledNotification = async (id: string): Promise<void> => {
-    try {
-        await Notifications.cancelScheduledNotificationAsync(id);
-    } catch (error) {
-        console.error('Error canceling notification:', error);
-    }
-};
+// export const cancelScheduledNotification = async (id: string): Promise<void> => {
+//     try {
+//         await Notifications.cancelScheduledNotificationAsync(id);
+//     } catch (error) {
+//         console.error('Error canceling notification:', error);
+//     }
+// };
 
 // Cancel all scheduled notifications
-export const cancelAllNotifications = async (): Promise<void> => {
-    try {
-        await Notifications.cancelAllScheduledNotificationsAsync();
-    } catch (error) {
-        console.error('Error canceling all notifications:', error);
-    }
-};
+// export const cancelAllNotifications = async (): Promise<void> => {
+//     try {
+//         await Notifications.cancelAllScheduledNotificationsAsync();
+//     } catch (error) {
+//         console.error('Error canceling all notifications:', error);
+//     }
+// };
 
 // Store the last received notification
 export const storeLastNotification = async (notification: Notifications.Notification): Promise<void> => {
@@ -183,16 +182,16 @@ export const storeLastNotification = async (notification: Notifications.Notifica
 };
 
 // Get the last received notification
-export const getLastNotification = async (): Promise<Notifications.Notification | null> => {
-    try {
-        const notification = await AsyncStorage.getItem(LAST_NOTIFICATION_KEY);
-        if (!notification) return null;
-        return JSON.parse(notification);
-    } catch (error) {
-        console.error('Error getting last notification:', error);
-        return null;
-    }
-};
+// export const getLastNotification = async (): Promise<Notifications.Notification | null> => {
+//     try {
+//         const notification = await AsyncStorage.getItem(LAST_NOTIFICATION_KEY);
+//         if (!notification) return null;
+//         return JSON.parse(notification);
+//     } catch (error) {
+//         console.error('Error getting last notification:', error);
+//         return null;
+//     }
+// };
 
 // Schedule a daily digest notification
 export const scheduleDailyDigest = async (hour = 9, minute = 0): Promise<string | null> => {

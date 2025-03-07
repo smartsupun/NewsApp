@@ -1,7 +1,6 @@
 // src/components/common/NotificationListener.tsx
 
 import React, { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { storeLastNotification } from '../../services/notifications/notificationService';

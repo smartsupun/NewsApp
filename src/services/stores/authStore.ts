@@ -4,7 +4,6 @@ import {
     setCurrentUser as setCurrentUserInDb,
     clearCurrentUser,
     getActiveAccounts,
-    addActiveAccount,
     removeActiveAccount,
     updateUser
 } from '../database/userRepository';
@@ -13,7 +12,6 @@ import { checkBiometricAvailability } from '../auth/biometricAuth';
 import * as emailAuth from '../auth/emailAuth';
 import { initializeNotifications } from '../notifications/notificationService';
 
-// Define a proper return type for auth operations
 interface AuthResult {
     success: boolean;
     user?: User;
