@@ -11,6 +11,7 @@ import {
 import { User } from '../../models/User';
 import { checkBiometricAvailability } from '../auth/biometricAuth';
 import * as emailAuth from '../auth/emailAuth';
+import { initializeNotifications } from '../notifications/notificationService';
 
 // Define a proper return type for auth operations
 interface AuthResult {
@@ -150,6 +151,9 @@ class AuthStore {
         try {
             await setCurrentUserInDb(user);
 
+            // Initialize notifications for this user
+            await initializeNotifications(user);
+
             runInAction(() => {
                 this.currentUser = user;
 
@@ -168,6 +172,7 @@ class AuthStore {
             return { success: false, message: error.message };
         }
     }
+
 
     async updateUserProfile(userData: Partial<User>) {
         this.isLoading = true;

@@ -33,7 +33,6 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="newsapp"/>
         <data android:scheme="com.hsd_apps.newsapp"/>
-        <data android:scheme="exp+newsapp"/>
       </intent-filter>
     </activity>
     <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false"/>

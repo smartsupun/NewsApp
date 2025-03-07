@@ -3,7 +3,7 @@ import 'dotenv/config';
 export default {
   name: "NewsApp",
   slug: "newsapp",
-  version: "1.0.0",
+  version: "1.0.1",
   orientation: "portrait",
   icon: "./assets/icon.png",
   userInterfaceStyle: "automatic",
@@ -19,7 +19,7 @@ export default {
     supportsTablet: true
   },
   android: {
-    versionCode: 1,
+    versionCode: 2,
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#fff"
@@ -35,6 +35,7 @@ export default {
   scheme: "newsapp",
   plugins: [
     "expo-router",
+    "expo-notifications",
     [
       "expo-local-authentication",
       {

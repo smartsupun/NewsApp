@@ -333,6 +333,23 @@ const ProfileScreen = observer(() => {
                             thumbColor={settingsStore.darkMode ? colors.primary : '#f4f3f4'}
                         />
                     </View>
+
+                    <TouchableOpacity
+                        style={styles.optionRow}
+                        onPress={() => router.push('/(app)/notifications')}
+                    >
+                        <View style={styles.optionInfo}>
+                            <FontAwesome name="bell" size={20} color={colors.primary} />
+                            <Text style={[styles.optionText, settingsStore.darkMode && styles.darkText]}>
+                                Notification Settings
+                            </Text>
+                        </View>
+                        <FontAwesome
+                            name="chevron-right"
+                            size={16}
+                            color={settingsStore.darkMode ? colors.darkTextSecondary : colors.textSecondary}
+                        />
+                    </TouchableOpacity>
                 </View>
 
                 {/* Sign Out Section */}

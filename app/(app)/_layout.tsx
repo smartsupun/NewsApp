@@ -50,6 +50,13 @@ const AppLayout = observer(() => {
                     tabBarIcon: ({ color }) => <FontAwesome name="user" size={24} color={color} />,
                 }}
             />
+            <Tabs.Screen
+                name="notifications"
+                options={{
+                    title: 'Notifications',
+                    tabBarButton: () => null,
+                }}
+            />
 
             <Tabs.Screen
                 name="article"
