@@ -54,15 +54,31 @@ const LoginScreen = observer(() => {
             Alert.alert('Login Failed', result.message || 'Invalid credentials');
         }
     };
-
     const handleGoogleLogin = async () => {
-        const result = await loginWithGoogle();
+        try {
+            // Clear any existing authentication state
+            await authStore.logout(); // This should clear current user and active accounts
 
-        if (result.success && result.user) {
-            await authStore.setCurrentUser(result.user);
-            router.replace('/(app)');
-        } else {
-            Alert.alert('Google Login Failed', result.message || 'Something went wrong');
+            const result = await loginWithGoogle();
+
+            if (result.success && result.user) {
+                await authStore.setCurrentUser(result.user);
+                router.replace('/(app)');
+            } else {
+                // More informative error handling
+                Alert.alert(
+                    'Google Login',
+                    result.message || 'Google login failed',
+                    [{ text: 'OK' }]
+                );
+            }
+        } catch (error) {
+            console.error('Login process error:', error);
+            Alert.alert(
+                'Error',
+                'An unexpected error occurred during login',
+                [{ text: 'OK' }]
+            );
         }
     };
 

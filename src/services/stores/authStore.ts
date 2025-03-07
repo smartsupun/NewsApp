@@ -291,16 +291,17 @@ class AuthStore {
 
         try {
             if (this.currentUser) {
+                // Remove from active accounts
                 await removeActiveAccount(this.currentUser.id);
+
+                // Clear current user
                 await clearCurrentUser();
             }
 
             runInAction(() => {
-                const currentUserId = this.currentUser?.id;
+                // Reset the entire authentication state
                 this.currentUser = null;
-                this.activeAccounts = this.activeAccounts.filter(
-                    account => account.id !== currentUserId
-                );
+                this.activeAccounts = [];
                 this.isLoading = false;
             });
 
