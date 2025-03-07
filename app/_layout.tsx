@@ -1,3 +1,5 @@
+// app/_layout.tsx
+
 import { useEffect, useState } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { observer } from 'mobx-react-lite';
@@ -7,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, Text, ActivityIndicator } from 'react-native';
 import authStore from '../src/services/stores/authStore';
 import settingsStore from '../src/services/stores/settingsStore';
+import NotificationListener from '../src/components/common/NotificationListener';
 
 // Keep the splash screen visible while we initialize the app
 SplashScreen.preventAutoHideAsync();
@@ -70,6 +73,7 @@ const RootLayout = observer(() => {
     return (
         <View style={{ flex: 1 }}>
             <StatusBar style={settingsStore.darkMode ? 'light' : 'dark'} />
+            <NotificationListener />
             <Slot />
         </View>
     );

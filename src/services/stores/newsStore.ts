@@ -5,6 +5,7 @@ import * as newsApi from '../api/newsApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as articleRepository from '../database/articleRepository';
 import NetInfo from '@react-native-community/netinfo';
+import { getNotificationSettings, sendImmediateNotification } from '../notifications/notificationService';
 
 const BOOKMARKS_STORAGE_KEY = 'newsapp_bookmarks';
 const SORT_PREFERENCE_KEY = 'newsapp_sort_preference';
@@ -148,8 +149,20 @@ class NewsStore {
             const isConnected = netInfo.isConnected;
 
             if (isConnected) {
+                // Get previous articles to compare with new ones
+                const previousArticles = category
+                    ? this.categoryArticles[category] || []
+                    : this.articles;
+
                 // Online: fetch from API
                 const response = await newsApi.fetchTopHeadlines(country, category);
+
+                // Check for notifications before updating the store
+                if (category) {
+                    await this.checkForCategoryUpdates(category, response.articles, previousArticles);
+                } else {
+                    await this.checkForBreakingNews(response.articles, previousArticles);
+                }
 
                 runInAction(() => {
                     if (category) {
@@ -327,6 +340,70 @@ class NewsStore {
     clearSearch() {
         this.searchResults = [];
     }
+
+    private async checkForBreakingNews(newArticles: Article[], oldArticles: Article[] = []) {
+        try {
+            // Get notification settings
+            const settings = await getNotificationSettings();
+
+            // If notifications or breaking news notifications are disabled, return
+            if (!settings.enabled || !settings.breakingNews) return;
+
+            // Get articles that contain "breaking" in the title and aren't in oldArticles
+            const breakingNews = newArticles.filter(article =>
+                article.title.toLowerCase().includes('breaking') &&
+                !oldArticles.some(oldArticle => oldArticle.url === article.url)
+            );
+
+            // If we have breaking news, send a notification for the first one
+            if (breakingNews.length > 0) {
+                const article = breakingNews[0];
+                await sendImmediateNotification(
+                    'Breaking News',
+                    article.title,
+                    {
+                        type: 'article',
+                        articleUrl: article.url
+                    }
+                );
+            }
+        } catch (error) {
+            console.error('Error checking for breaking news:', error);
+        }
+
+
+    }
+    private async checkForCategoryUpdates(category: string, newArticles: Article[], oldArticles: Article[] = []) {
+        try {
+            // Get notification settings
+            const settings = await getNotificationSettings();
+
+            // If notifications are disabled or category isn't in user's preferences, return
+            if (!settings.enabled || !settings.categories.includes(category)) return;
+
+            // Check if there are any new articles not in the old list
+            const newUpdates = newArticles.filter(article =>
+                !oldArticles.some(oldArticle => oldArticle.url === article.url)
+            );
+
+            // If we have new articles, send a notification
+            if (newUpdates.length > 0) {
+                const categoryName = category.charAt(0).toUpperCase() + category.slice(1);
+                await sendImmediateNotification(
+                    `${categoryName} News Update`,
+                    `${newUpdates.length} new ${categoryName} articles available`,
+                    {
+                        type: 'category',
+                        category: category
+                    }
+                );
+            }
+        } catch (error) {
+            console.error(`Error checking for ${category} updates:`, error);
+        }
+    }
+
 }
+
 
 export default new NewsStore();
