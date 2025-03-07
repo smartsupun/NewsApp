@@ -31,7 +31,7 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="com.hsd_apps.newsapp"/>
+        <data android:scheme="newsapp"/>
         <data android:scheme="com.hsd_apps.newsapp"/>
       </intent-filter>
     </activity>

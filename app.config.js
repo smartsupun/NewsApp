@@ -1,9 +1,9 @@
 import 'dotenv/config';
 
 export default {
-  name: "NewsApp",
+  name: "News App",
   slug: "newsapp",
-  version: "1.0.1",
+  version: "1.0.3",
   orientation: "portrait",
   icon: "./assets/icon.png",
   userInterfaceStyle: "automatic",
@@ -19,7 +19,7 @@ export default {
     supportsTablet: true
   },
   android: {
-    versionCode: 2,
+    versionCode: 4,
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#fff"
@@ -32,7 +32,7 @@ export default {
       "android.permission.USE_FINGERPRINT"
     ],
   },
-  scheme: "com.hsd_apps.newsapp",
+  scheme: "newsapp",
   plugins: [
     "expo-router",
     "expo-notifications",

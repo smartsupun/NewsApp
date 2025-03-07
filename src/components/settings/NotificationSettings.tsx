@@ -146,7 +146,7 @@ const NotificationSettings = observer(() => {
 
     return (
         <View style={[styles.container, settingsStore.darkMode && styles.darkContainer]}>
-            <View style={styles.section}>
+            <View style={[styles.section, settingsStore.darkMode && styles.darkSection]}>
                 <View style={styles.sectionHeader}>
                     <Text style={[styles.sectionTitle, settingsStore.darkMode && styles.darkText]}>
                         Notification Preferences

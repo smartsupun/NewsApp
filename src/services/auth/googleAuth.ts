@@ -1,6 +1,7 @@
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { Platform, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../../models/User';
 import {
     createUser,
@@ -22,6 +23,32 @@ const COGNITO_CONFIG = {
 };
 
 const useGoogleAuth = () => {
+    // Comprehensive logout method to clear all authentication states
+    const fullLogout = async () => {
+        try {
+            // Clear various storage mechanisms
+            await AsyncStorage.multiRemove([
+                'newsapp_current_user',
+                'newsapp_active_accounts',
+                'newsapp_auth_tokens'
+            ]);
+
+            // Clear Expo AuthSession state
+            const keys = await AsyncStorage.getAllKeys();
+            const authSessionKeys = keys.filter(key =>
+                key.includes('expo-auth-session') ||
+                key.includes('expo.modules.auth')
+            );
+            await AsyncStorage.multiRemove(authSessionKeys);
+
+            // Attempt to revoke any existing tokens (if possible)
+            // Note: This would typically involve a server-side call to Cognito
+            console.log('Comprehensive logout completed');
+        } catch (error) {
+            console.error('Full logout error:', error);
+        }
+    };
+
     // Generate redirect URI with explicit configuration
     const redirectUri = AuthSession.makeRedirectUri({
         scheme: Platform.select({
@@ -48,8 +75,8 @@ const useGoogleAuth = () => {
             scopes: ['openid', 'profile', 'email'],
             extraParams: {
                 response_mode: 'query',
-                // Force account selection and prevent automatic sign-in
-                prompt: 'login select_account'
+                // Force new authentication every time
+                prompt: 'login select_account max_age=0'
             }
         },
         discovery
@@ -57,14 +84,26 @@ const useGoogleAuth = () => {
 
     const loginWithGoogle = async () => {
         try {
-            // Clear current user before authentication
+            // Perform a comprehensive logout before authentication
+            await fullLogout();
+
+            // Additional explicit cleanup
             await clearCurrentUser();
 
-            // Log the request configuration for debugging
-            console.log('Authentication Request:', {
-                redirectUri,
+            console.log('Starting Google Authentication Process');
+            console.log('Redirect URI:', redirectUri);
+            console.log('Platform:', Platform.OS);
+
+            // Extensive logging of authentication request
+            console.log('Authentication Request Details:', {
                 clientId: COGNITO_CONFIG.userPoolWebClientId,
-                platform: Platform.OS
+                redirectUri,
+                responseType: AuthSession.ResponseType.Code,
+                scopes: ['openid', 'profile', 'email'],
+                extraParams: {
+                    response_mode: 'query',
+                    prompt: 'login select_account max_age=0'
+                }
             });
 
             // Prompt for authentication with forced account selection
@@ -205,16 +244,9 @@ const useGoogleAuth = () => {
 
     const signOut = async () => {
         try {
-            // If a user is logged in, remove from active accounts
-            const currentUser = await getCurrentUser();
-            if (currentUser) {
-                await removeActiveAccount(currentUser.id);
-            }
+            // Perform a comprehensive logout
+            await fullLogout();
 
-            // Clear current user
-            await clearCurrentUser();
-
-            // Minimal cleanup
             return { success: true };
         } catch (error) {
             console.error('Logout Error:', error);
