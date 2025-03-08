@@ -23,30 +23,41 @@ const RootLayout = observer(() => {
     useEffect(() => {
         const initializeApp = async () => {
             try {
-                console.log('Comprehensive App Initialization');
+                console.log('Initializing app...');
 
-                // Initialize storage
+                // Initialize storage instead of SQLite database
+                console.log('Initializing storage...');
                 await initStorage();
+                console.log('Storage initialized successfully');
 
-                // Initialize stores with comprehensive logging
-                console.log('Initializing Auth Store...');
+                // Initialize stores
+                console.log('Initializing auth store...');
                 await authStore.initialize();
-
-                console.log('Initializing Settings Store...');
+                console.log('Initializing settings store...');
                 await settingsStore.initialize();
+                console.log('Stores initialized successfully');
 
-                // Detailed logging about current authentication state
-                console.log('Current User:',
-                    authStore.currentUser ? authStore.currentUser.id : 'No current user'
-                );
-                console.log('Active Accounts:',
-                    authStore.activeAccounts.map(a => a.id)
-                );
+                // After auth state is loaded, decide where to go
+                const inAuthGroup = segments[0] === '(auth)';
 
-                // Rest of existing initialization logic...
-            } catch (error) {
-                console.error('Critical App Initialization Error:', error);
-                // Ensure user is directed to login even if initialization fails
+                if (!authStore.currentUser && !inAuthGroup) {
+                    // Not logged in, go to login
+                    router.replace('/(auth)/login');
+                } else if (authStore.currentUser && inAuthGroup) {
+                    // Logged in but on auth screen, go to app
+                    router.replace('/(app)');
+                }
+
+                // Hide splash screen and mark initialization as complete
+                await SplashScreen.hideAsync();
+                setIsInitializing(false);
+            } catch (error: any) {
+                console.error('Error initializing app:', error);
+                // Set error message and hide splash screen
+                setError(error.message || 'Failed to initialize app');
+                await SplashScreen.hideAsync();
+                setIsInitializing(false);
+                // Navigate to login on error
                 router.replace('/(auth)/login');
             }
         };

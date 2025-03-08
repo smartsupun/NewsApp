@@ -36,7 +36,7 @@ const LoginScreen = observer(() => {
             const biometricStatus = await LocalAuthentication.hasHardwareAsync();
             setIsBiometricAvailable(biometricStatus);
         };
-        authStore.initialize();
+        // authStore.initialize();
         checkBiometric();
     }, []);
 
