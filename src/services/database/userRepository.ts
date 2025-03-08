@@ -199,17 +199,31 @@ export const addActiveAccount = async (user: User): Promise<void> => {
 };
 
 // Remove active account
+// Remove active account
 export const removeActiveAccount = async (userId: string): Promise<void> => {
     try {
+        console.log('Remove active account - userId:', userId);
         const activeAccountsJson = await AsyncStorage.getItem(ACTIVE_ACCOUNTS_STORAGE_KEY);
-        if (!activeAccountsJson) return;
+        console.log('Active accounts before removal:', activeAccountsJson);
+
+        if (!activeAccountsJson) {
+            console.log('No active accounts found in storage');
+            return;
+        }
 
         const activeAccounts = JSON.parse(activeAccountsJson);
+        console.log('Parsed active accounts:', activeAccounts);
+
         const filteredAccounts = activeAccounts.filter(
             (account: any) => account.userId !== userId
         );
 
+        console.log('Filtered accounts:', filteredAccounts);
         await AsyncStorage.setItem(ACTIVE_ACCOUNTS_STORAGE_KEY, JSON.stringify(filteredAccounts));
+
+        // Verify the update worked
+        const updatedJson = await AsyncStorage.getItem(ACTIVE_ACCOUNTS_STORAGE_KEY);
+        console.log('Active accounts after removal:', updatedJson);
     } catch (error) {
         console.error('Error removing active account:', error);
         throw error;

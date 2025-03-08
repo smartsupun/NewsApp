@@ -82,55 +82,42 @@ const useGoogleAuth = () => {
         discovery
     );
 
-    const loginWithGoogle = async () => {
+    const loginWithGoogle = async (options: { prompt?: string } = {}) => {
         try {
-            // Perform a comprehensive logout before authentication
-            await fullLogout();
+            console.log("Starting Google authentication process");
 
-            // Additional explicit cleanup
-            await clearCurrentUser();
-
-            console.log('Starting Google Authentication Process');
-            console.log('Redirect URI:', redirectUri);
-            console.log('Platform:', Platform.OS);
-
-            // Extensive logging of authentication request
-            console.log('Authentication Request Details:', {
-                clientId: COGNITO_CONFIG.userPoolWebClientId,
-                redirectUri,
-                responseType: AuthSession.ResponseType.Code,
-                scopes: ['openid', 'profile', 'email'],
+            // Add prompt option to force account selection
+            const authRequestOptions = {
+                ...request,
                 extraParams: {
-                    response_mode: 'query',
-                    prompt: 'login select_account max_age=0'
+                    ...request?.extraParams,
+                    prompt: options.prompt || 'auto'
                 }
-            });
+            };
 
-            // Prompt for authentication with forced account selection
             const result = await promptAsync({
                 useProxy: Platform.OS === 'web',
-                showInRecents: true,
                 ...(Platform.OS === 'web' ? {
                     windowFeatures: {
                         width: 500,
                         height: 600
                     }
-                } : {})
+                } : {}),
+                authRequestOptions
             } as any);
 
-            // Detailed logging of authentication result
-            console.log('Authentication Result:', JSON.stringify(result, null, 2));
+            console.log("Authentication Result:", JSON.stringify(result, null, 2));
 
-            // Handle authentication failure
+            // More explicit error handling
             if (result.type !== 'success') {
+                console.log(`Authentication failed: ${result.type}`);
                 return {
                     success: false,
-                    message: result.type === 'cancel'
-                        ? 'Authentication cancelled'
+                    message: result.type === 'dismiss'
+                        ? 'Login was cancelled'
                         : 'Authentication failed'
                 };
             }
-
             // Exchange authorization code for tokens
             const tokenResult = await AuthSession.exchangeCodeAsync(
                 {
