@@ -15,8 +15,8 @@ WebBrowser.maybeCompleteAuthSession();
 
 // Cognito configuration
 const COGNITO_CONFIG = {
-    userPoolWebClientId: Constants.expoConfig?.extra?.googleClientId,
-    domain: Constants.expoConfig?.extra?.domain,
+    userPoolWebClientId: "7opkttdhbtba8qufk8oh43eir8",
+    domain: "ap-southeast-1335m9qdxx.auth.ap-southeast-1.amazoncognito.com",
 };
 
 const useGoogleAuth = () => {

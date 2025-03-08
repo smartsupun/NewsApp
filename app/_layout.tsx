@@ -1,4 +1,4 @@
-// app/_layout.tsx
+// app/_layout.tsx - Update
 
 import { useEffect, useState } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
@@ -10,6 +10,7 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import authStore from '../src/services/stores/authStore';
 import settingsStore from '../src/services/stores/settingsStore';
 import NotificationListener from '../src/components/common/NotificationListener';
+import ErrorBoundary from '../src/components/common/ErrorBoundary';
 
 // Keep the splash screen visible while we initialize the app
 SplashScreen.preventAutoHideAsync();
@@ -57,6 +58,7 @@ const RootLayout = observer(() => {
                 setError(error.message || 'Failed to initialize app');
                 await SplashScreen.hideAsync();
                 setIsInitializing(false);
+
                 // Navigate to login on error
                 router.replace('/(auth)/login');
             }
@@ -71,11 +73,13 @@ const RootLayout = observer(() => {
     }
 
     return (
-        <View style={{ flex: 1 }}>
-            <StatusBar style={settingsStore.darkMode ? 'light' : 'dark'} />
-            <NotificationListener />
-            <Slot />
-        </View>
+        <ErrorBoundary>
+            <View style={{ flex: 1 }}>
+                <StatusBar style={settingsStore.darkMode ? 'light' : 'dark'} />
+                <NotificationListener />
+                <Slot />
+            </View>
+        </ErrorBoundary>
     );
 });
 
