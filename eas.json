@@ -12,7 +12,10 @@
                 "EXPO_FACEBOOK_APP_ID": "599520879746921",
                 "EXPO_GOOGLE_CLIENT_ID": "101566213848-fe6a8n483k4uf9pvg3g9o3qhp5i8ahnn.apps.googleusercontent.com",
                 "EXPO_NEWS_API_ID": "e3cb147b60e54b6896bfd472623aed99",
-                "EXPO_NEWS_API_URL": "https://newsapi.org/v2"
+                "EXPO_NEWS_API_URL": "https://newsapi.org/v2",
+                "EXPO_COGNITO_FB_CLIENT_ID": "6i3eoe6ab26tn8r6ljmm36cskb",
+                "EXPO_COGNITO_GOOGLE_CLIENT_ID": "7opkttdhbtba8qufk8oh43eir8",
+                "EXPO_COGNITO_DOMAIN": "ap-southeast-1335m9qdxx.auth.ap-southeast-1.amazoncognito.com"
             }
         },
         "test": {
@@ -26,7 +29,10 @@
                 "EXPO_FACEBOOK_APP_ID": "599520879746921",
                 "EXPO_GOOGLE_CLIENT_ID": "101566213848-fe6a8n483k4uf9pvg3g9o3qhp5i8ahnn.apps.googleusercontent.com",
                 "EXPO_NEWS_API_ID": "e3cb147b60e54b6896bfd472623aed99",
-                "EXPO_NEWS_API_URL": "https://newsapi.org/v2"
+                "EXPO_NEWS_API_URL": "https://newsapi.org/v2",
+                "EXPO_COGNITO_FB_CLIENT_ID": "6i3eoe6ab26tn8r6ljmm36cskb",
+                "EXPO_COGNITO_GOOGLE_CLIENT_ID": "7opkttdhbtba8qufk8oh43eir8",
+                "EXPO_COGNITO_DOMAIN": "ap-southeast-1335m9qdxx.auth.ap-southeast-1.amazoncognito.com"
             }
         }
     },

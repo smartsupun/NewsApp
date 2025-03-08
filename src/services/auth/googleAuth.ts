@@ -1,25 +1,22 @@
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User } from '../../models/User';
 import {
     createUser,
     getUserByEmail,
     updateUser,
-    setCurrentUser,
-    removeActiveAccount,
-    getCurrentUser,
-    clearCurrentUser
+    setCurrentUser
 } from '../database/userRepository';
+import Constants from 'expo-constants';
 
 // Ensure web browser session is completed
 WebBrowser.maybeCompleteAuthSession();
 
 // Cognito configuration
 const COGNITO_CONFIG = {
-    userPoolWebClientId: '7opkttdhbtba8qufk8oh43eir8',
-    domain: 'ap-southeast-1335m9qdxx.auth.ap-southeast-1.amazoncognito.com'
+    userPoolWebClientId: Constants.expoConfig?.extra?.googleClientId,
+    domain: Constants.expoConfig?.extra?.domain,
 };
 
 const useGoogleAuth = () => {

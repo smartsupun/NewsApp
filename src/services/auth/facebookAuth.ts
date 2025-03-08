@@ -2,7 +2,6 @@ import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import { User } from '../../models/User';
 import {
     createUser,
     getUserByEmail,
@@ -16,8 +15,8 @@ WebBrowser.maybeCompleteAuthSession();
 
 // Cognito configuration
 const COGNITO_CONFIG = {
-    userPoolWebClientId: '6i3eoe6ab26tn8r6ljmm36cskb',
-    domain: 'ap-southeast-1335m9qdxx.auth.ap-southeast-1.amazoncognito.com',
+    userPoolWebClientId: Constants.expoConfig?.extra?.fbClientId,
+    domain: Constants.expoConfig?.extra?.domain,
     facebookAppId: Constants.expoConfig?.extra?.facebookAppId
 };
 

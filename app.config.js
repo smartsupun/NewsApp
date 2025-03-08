@@ -48,6 +48,10 @@ export default {
     googleClientId: process.env.EXPO_GOOGLE_CLIENT_ID,
     newsApiId: process.env.EXPO_NEWS_API_ID,
     newsApiUrl: process.env.EXPO_NEWS_API_URL,
+    domain: process.env.EXPO_COGNITO_DOMAIN,
+    fbClientId: process.env.EXPO_COGNITO_FB_CLIENT_ID,
+    googleClientId: process.env.EXPO_GOOGLE_CLIENT_ID,
+
     eas: {
       projectId: "a07c2c8e-b8a4-4834-a979-7e7c58f5f46d"
     }
@@ -56,11 +60,6 @@ export default {
     bundler: "metro"
   },
   owner: "hsd_apps",
-  runtimeVersion: "1.0.0",
-  updates: {
-    url: "https://u.expo.dev/a07c2c8e-b8a4-4834-a979-7e7c58f5f46d",
-    enabled: true,
-    checkAutomatically: "ON_LOAD",
-    fallbackToCacheTimeout: 0
-  }
+  runtimeVersion: "1.0.0"
+
 };
