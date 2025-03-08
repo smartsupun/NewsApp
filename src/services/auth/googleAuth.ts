@@ -1,30 +1,57 @@
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { Platform } from 'react-native';
-import { User } from '../../models/User';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     createUser,
     getUserByEmail,
     updateUser,
+    setCurrentUser
 } from '../database/userRepository';
+import Constants from 'expo-constants';
 
 // Ensure web browser session is completed
 WebBrowser.maybeCompleteAuthSession();
 
 // Cognito configuration
 const COGNITO_CONFIG = {
-    userPoolWebClientId: '7opkttdhbtba8qufk8oh43eir8',
-    domain: 'ap-southeast-1335m9qdxx.auth.ap-southeast-1.amazoncognito.com'
+    userPoolWebClientId: Constants.expoConfig?.extra?.googleClientId,
+    domain: Constants.expoConfig?.extra?.domain,
 };
 
 const useGoogleAuth = () => {
+    // Comprehensive logout method to clear all authentication states
+    const fullLogout = async () => {
+        try {
+            // Clear various storage mechanisms
+            await AsyncStorage.multiRemove([
+                'newsapp_current_user',
+                'newsapp_active_accounts',
+                'newsapp_auth_tokens'
+            ]);
+
+            // Clear Expo AuthSession state
+            const keys = await AsyncStorage.getAllKeys();
+            const authSessionKeys = keys.filter(key =>
+                key.includes('expo-auth-session') ||
+                key.includes('expo.modules.auth')
+            );
+            await AsyncStorage.multiRemove(authSessionKeys);
+
+            // Attempt to revoke any existing tokens (if possible)
+            // Note: This would typically involve a server-side call to Cognito
+            console.log('Comprehensive logout completed');
+        } catch (error) {
+            console.error('Full logout error:', error);
+        }
+    };
+
     // Generate redirect URI with explicit configuration
     const redirectUri = AuthSession.makeRedirectUri({
         scheme: Platform.select({
-            native: 'newsapp', // for both iOS and Android
+            native: 'newsapp',
             web: 'https://ap-southeast-1335m9qdxx.auth.ap-southeast-1.amazoncognito.com/'
         }),
-        // Removed useProxy as it is not a valid property
     });
 
     // Cognito discovery endpoints
@@ -43,33 +70,28 @@ const useGoogleAuth = () => {
             responseType: AuthSession.ResponseType.Code,
             usePKCE: true,
             scopes: ['openid', 'profile', 'email'],
-            // Add custom parameters to handle potential redirect mismatches
             extraParams: {
-                response_mode: 'query'
+                response_mode: 'query',
+                // Force new authentication every time
+                prompt: 'login select_account max_age=0'
             }
         },
         discovery
     );
 
-    const loginWithGoogle = async () => {
+    const loginWithGoogle = async (options: { prompt?: string } = {}) => {
         try {
-            // Extensive logging for debugging
-            console.log("Redirect URI Configuration:", {
-                redirectUri,
-                platform: Platform.OS,
-                proxyEnabled: Platform.select({
-                    web: true,
-                    default: false
-                })
-            });
-            console.log("Request Object:", JSON.stringify(request, null, 2));
+            console.log("Starting Google authentication process");
 
-            // Verify authentication request is ready
-            if (!request) {
-                throw new Error('Authentication request is not initialized');
-            }
+            // Add prompt option to force account selection
+            const authRequestOptions = {
+                ...request,
+                extraParams: {
+                    ...request?.extraParams,
+                    prompt: options.prompt || 'auto'
+                }
+            };
 
-            // Prompt for authentication
             const result = await promptAsync({
                 useProxy: Platform.OS === 'web',
                 ...(Platform.OS === 'web' ? {
@@ -77,17 +99,22 @@ const useGoogleAuth = () => {
                         width: 500,
                         height: 600
                     }
-                } : {})
+                } : {}),
+                authRequestOptions
             } as any);
 
-            // Log authentication result
             console.log("Authentication Result:", JSON.stringify(result, null, 2));
 
-            // Handle authentication failure
+            // More explicit error handling
             if (result.type !== 'success') {
-                throw new Error(`Authentication failed: ${result.type}`);
+                console.log(`Authentication failed: ${result.type}`);
+                return {
+                    success: false,
+                    message: result.type === 'dismiss'
+                        ? 'Login was cancelled'
+                        : 'Authentication failed'
+                };
             }
-
             // Exchange authorization code for tokens
             const tokenResult = await AuthSession.exchangeCodeAsync(
                 {
@@ -95,7 +122,7 @@ const useGoogleAuth = () => {
                     code: result.params.code,
                     redirectUri: redirectUri,
                     extraParams: {
-                        code_verifier: request.codeVerifier || '',
+                        code_verifier: request?.codeVerifier || '',
                     },
                 },
                 {
@@ -103,8 +130,8 @@ const useGoogleAuth = () => {
                 }
             );
 
-            // Log token result
-            console.log("Token Exchange Result:", JSON.stringify(tokenResult, null, 2));
+            // Log token result for debugging
+            console.log('Token Exchange Result:', JSON.stringify(tokenResult, null, 2));
 
             // Validate access token
             if (!tokenResult.accessToken) {
@@ -127,38 +154,69 @@ const useGoogleAuth = () => {
             }
 
             const userData = await userInfoResponse.json();
-            console.log("User Data:", JSON.stringify(userData, null, 2));
+
+            // Log user data for debugging
+            console.log('User Data:', JSON.stringify(userData, null, 2));
 
             // Validate email
             if (!userData.email) {
                 throw new Error('No email received from Cognito');
             }
 
-            // User management logic
-            let user = await getUserByEmail(userData.email, 'cognito');
+            // Find existing user
+            let existingUser = await getUserByEmail(userData.email, 'google');
 
-            if (user) {
-                // Update existing user
-                user.lastLoginAt = new Date();
-                await updateUser(user);
+            // Handle user management with more robust logic
+            if (existingUser) {
+                // Update existing user's details
+                existingUser.firstName = userData.given_name || existingUser.firstName;
+                existingUser.lastName = userData.family_name || existingUser.lastName;
+                existingUser.profilePicture = userData.picture || existingUser.profilePicture;
+                existingUser.lastLoginAt = new Date();
+
+                // Update user in database
+                await updateUser(existingUser);
             } else {
                 // Create new user
-                user = await createUser({
-                    id: `cognito_${userData.sub}`,
+                existingUser = await createUser({
+                    id: `google_${userData.sub}`,
                     firstName: userData.given_name || '',
                     lastName: userData.family_name || '',
                     email: userData.email,
                     profilePicture: userData.picture || null,
+                    authProvider: 'google',
                     createdAt: new Date(),
                     lastLoginAt: new Date()
                 });
             }
 
-            return { success: true, user };
+            // Set as current user
+            await setCurrentUser(existingUser);
+
+            return { success: true, user: existingUser };
 
         } catch (error) {
-            // Comprehensive error handling
-            console.error('Complete Authentication Error:', error);
+            // Comprehensive error logging
+            console.error('Complete Google Authentication Error:', error);
+
+            // More detailed error handling
+            if (error instanceof Error) {
+                if (error.message.includes('already exists')) {
+                    return {
+                        success: false,
+                        message: 'This account is already registered. Please sign in with the original method.'
+                    };
+                }
+
+                // Check for common authentication errors
+                if (error.message.includes('invalid_grant')) {
+                    return {
+                        success: false,
+                        message: 'Authentication expired. Please try again.'
+                    };
+                }
+            }
+
             return {
                 success: false,
                 message: error instanceof Error
@@ -170,7 +228,9 @@ const useGoogleAuth = () => {
 
     const signOut = async () => {
         try {
-            // Implement Cognito logout logic if needed
+            // Perform a comprehensive logout
+            await fullLogout();
+
             return { success: true };
         } catch (error) {
             console.error('Logout Error:', error);
@@ -181,7 +241,12 @@ const useGoogleAuth = () => {
         }
     };
 
-    return { loginWithGoogle, signOut };
+    return {
+        loginWithGoogle,
+        signOut,
+        request,  // Expose request for potential advanced use cases
+        response  // Expose response for potential advanced use cases
+    };
 };
 
 export default useGoogleAuth;

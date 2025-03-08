@@ -35,9 +35,11 @@ class AuthStore {
         try {
             // Load current user from storage
             const user = await getCurrentUser();
+            console.log('Initialize - Current User:', user ? user.id : 'none');
 
             // Load active accounts
             const accounts = await getActiveAccounts();
+            console.log('Initialize - Active Accounts:', accounts.length, accounts.map(a => a.id));
 
             // Check biometric availability
             const biometricStatus = await checkBiometricAvailability();
@@ -286,34 +288,37 @@ class AuthStore {
         }
     }
 
+    // In authStore.ts, the logout method should be updated to call authStore.initialize():
+
     async logout() {
         this.isLoading = true;
 
         try {
             if (this.currentUser) {
+                console.log('Logout - Removing account:', this.currentUser.id);
                 await removeActiveAccount(this.currentUser.id);
                 await clearCurrentUser();
             }
 
+            // Completely reset the store state
             runInAction(() => {
-                const currentUserId = this.currentUser?.id;
                 this.currentUser = null;
-                this.activeAccounts = this.activeAccounts.filter(
-                    account => account.id !== currentUserId
-                );
+                this.activeAccounts = [];
                 this.isLoading = false;
             });
 
             return { success: true };
         } catch (error: any) {
+            console.error('Logout error:', error);
             runInAction(() => {
+                this.currentUser = null;
+                this.activeAccounts = [];
                 this.isLoading = false;
             });
 
             return { success: false, message: error.message };
         }
     }
-
     async logoutAll() {
         this.isLoading = true;
 

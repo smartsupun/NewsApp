@@ -65,11 +65,16 @@ export const registerForPushNotifications = async (user: User): Promise<string |
         // First, check permissions
         const permissionGranted = await requestNotificationPermissions();
         if (!permissionGranted) return null;
+        console.log('Constants.expoConfig:', Constants.expoConfig);
 
         // Get push token
         const token = await Notifications.getExpoPushTokenAsync({
             projectId: Constants.expoConfig?.extra?.eas?.projectId,
+            development: true
         });
+
+        console.log('Token:', token);
+
 
         // Store token locally
         await AsyncStorage.setItem(NOTIFICATION_TOKEN_KEY, token.data);
@@ -83,7 +88,7 @@ export const registerForPushNotifications = async (user: User): Promise<string |
 
         return token.data;
     } catch (error) {
-        console.error('Error registering for push notifications:', error);
+        // console.error('Error registering for push notifications:', error);
         return null;
     }
 };

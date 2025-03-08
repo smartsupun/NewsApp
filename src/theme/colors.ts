@@ -10,7 +10,6 @@ export const colors = {
     textSecondary: '#757575',
     divider: '#bdbdbd',
 
-    // Dark theme
     darkPrimary: '#3b5998',
     darkBackground: '#121212',
     darkSurface: '#1e1e1e',

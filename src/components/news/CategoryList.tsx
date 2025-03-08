@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         paddingVertical: SPACING.xs,
+        marginHorizontal: SPACING.md,
     },
     container: {
         paddingHorizontal: SPACING.md,

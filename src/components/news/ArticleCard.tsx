@@ -15,6 +15,7 @@ import {
     RADIUS,
     FONT_SIZE
 } from '../../../src/utils/constants';
+
 interface ArticleCardProps {
     article: Article;
     showBookmarkButton?: boolean;
@@ -42,17 +43,34 @@ const ArticleCard = observer(({ article, showBookmarkButton = true }: ArticleCar
             style={[styles.card, settingsStore.darkMode && styles.darkCard]}
             onPress={handlePress}
         >
-            {article.urlToImage ? (
-                <Image
-                    source={{ uri: article.urlToImage }}
-                    style={styles.image}
-                    resizeMode="cover"
-                />
-            ) : (
-                <View style={styles.placeholderImage}>
-                    <FontAwesome name="newspaper-o" size={48} color={colors.textSecondary} />
-                </View>
-            )}
+            <View style={styles.imageContainer}>
+                {article.urlToImage ? (
+                    <Image
+                        source={{ uri: article.urlToImage }}
+                        style={styles.image}
+                        resizeMode="cover"
+                    />
+                ) : (
+                    <View style={styles.placeholderImage}>
+                        <FontAwesome name="newspaper-o" size={48} color={colors.textSecondary} />
+                    </View>
+                )}
+
+                {showBookmarkButton && (
+                    <TouchableOpacity
+                        style={styles.bookmarkButton}
+                        onPress={() => {
+                            newsStore.toggleBookmark(article);
+                        }}
+                    >
+                        <FontAwesome
+                            name={isBookmarked ? "bookmark" : "bookmark-o"}
+                            size={24}
+                            color={isBookmarked ? colors.primary : (settingsStore.darkMode ? colors.darkText : colors.text)}
+                        />
+                    </TouchableOpacity>
+                )}
+            </View>
 
             <View style={styles.content}>
                 <Text style={[styles.title, settingsStore.darkMode && styles.darkText]}>
@@ -70,21 +88,6 @@ const ArticleCard = observer(({ article, showBookmarkButton = true }: ArticleCar
                     >
                         {article.description}
                     </Text>
-                )}
-
-                {showBookmarkButton && (
-                    <TouchableOpacity
-                        style={styles.bookmarkButton}
-                        onPress={() => {
-                            newsStore.toggleBookmark(article);
-                        }}
-                    >
-                        <FontAwesome
-                            name={isBookmarked ? "bookmark" : "bookmark-o"}
-                            size={24}
-                            color={isBookmarked ? colors.primary : (settingsStore.darkMode ? colors.darkText : colors.text)}
-                        />
-                    </TouchableOpacity>
                 )}
             </View>
         </TouchableOpacity>
@@ -106,6 +109,10 @@ const styles = StyleSheet.create({
     },
     darkCard: {
         backgroundColor: colors.darkSurface,
+    },
+    imageContainer: {
+        position: 'relative',
+        width: '100%',
     },
     image: {
         height: verticalScale(180),
@@ -148,8 +155,8 @@ const styles = StyleSheet.create({
     },
     bookmarkButton: {
         position: 'absolute',
-        top: SPACING.md,
-        right: SPACING.md,
+        top: SPACING.sm,
+        right: SPACING.sm,
         padding: SPACING.sm,
         backgroundColor: 'rgba(255,255,255,0.7)',
         borderRadius: RADIUS.round,
@@ -157,8 +164,8 @@ const styles = StyleSheet.create({
         height: scale(40),
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 1,
     }
-
 });
 
 export default ArticleCard;

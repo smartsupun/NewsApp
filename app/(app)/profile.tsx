@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
         color: colors.darkTextSecondary,
     },
     logoutButton: {
-        backgroundColor: '#dc3545',
+        backgroundColor: colors.primary,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',

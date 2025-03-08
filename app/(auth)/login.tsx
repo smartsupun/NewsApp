@@ -36,7 +36,7 @@ const LoginScreen = observer(() => {
             const biometricStatus = await LocalAuthentication.hasHardwareAsync();
             setIsBiometricAvailable(biometricStatus);
         };
-
+        // authStore.initialize();
         checkBiometric();
     }, []);
 
@@ -56,13 +56,46 @@ const LoginScreen = observer(() => {
     };
 
     const handleGoogleLogin = async () => {
-        const result = await loginWithGoogle();
+        try {
+            // Clear any existing authentication state completely
+            await authStore.logout();
+            await authStore.initialize(); // Reinitialize to ensure clean state
 
-        if (result.success && result.user) {
-            await authStore.setCurrentUser(result.user);
-            router.replace('/(app)');
-        } else {
-            Alert.alert('Google Login Failed', result.message || 'Something went wrong');
+            // Prompt user to select Google account
+            const result = await loginWithGoogle();
+
+            if (result.success && result.user) {
+                // Explicitly set the current user and reinitialize
+                await authStore.setCurrentUser(result.user);
+                await authStore.initialize();
+
+                // Navigate to app
+                router.replace('/(app)');
+            } else {
+                // More detailed error handling
+                Alert.alert(
+                    'Google Login',
+                    result.message || 'Google login failed. Please try again.',
+                    [{
+                        text: 'OK',
+                        onPress: () => {
+                            // Optional: reset any partial authentication state
+                            authStore.logout();
+                        }
+                    }]
+                );
+            }
+        } catch (error) {
+            console.error('Complete Google login process error:', error);
+
+            // Ensure clean logout if anything goes wrong
+            await authStore.logout();
+
+            Alert.alert(
+                'Login Error',
+                'An unexpected error occurred. Please try again.',
+                [{ text: 'OK' }]
+            );
         }
     };
 
@@ -99,6 +132,8 @@ const LoginScreen = observer(() => {
     };
 
     const renderActiveAccounts = () => {
+        console.log('Active accounts:', authStore.activeAccounts);
+
         if (authStore.activeAccounts.length === 0) return null;
 
         return (
