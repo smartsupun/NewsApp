@@ -15,8 +15,8 @@ WebBrowser.maybeCompleteAuthSession();
 
 // Cognito configuration
 const COGNITO_CONFIG = {
-    userPoolWebClientId: Constants.expoConfig?.extra?.fbClientId,
-    domain: Constants.expoConfig?.extra?.domain,
+    userPoolWebClientId: '6i3eoe6ab26tn8r6ljmm36cskb',
+    domain: 'ap-southeast-1335m9qdxx.auth.ap-southeast-1.amazoncognito.com',
     facebookAppId: Constants.expoConfig?.extra?.facebookAppId
 };
 
