@@ -22,13 +22,17 @@ const HomeScreen = observer(() => {
     const [refreshing, setRefreshing] = useState(false);
 
     const loadArticles = async () => {
-        await newsStore.fetchTopHeadlines('us', selectedCategory);
+        await newsStore.fetchTopHeadlines('us', selectedCategory, 1, true);
     };
 
     const handleRefresh = async () => {
         setRefreshing(true);
         await loadArticles();
         setRefreshing(false);
+    };
+
+    const handleLoadMore = () => {
+        newsStore.loadMoreArticles('us', selectedCategory);
     };
 
     const handleCategorySelect = (category: string) => {
@@ -85,6 +89,16 @@ const HomeScreen = observer(() => {
                             tintColor={settingsStore.darkMode ? colors.primaryLight : colors.primary}
                         />
                     }
+                    onEndReached={handleLoadMore}
+                    onEndReachedThreshold={0.5}
+                    ListFooterComponent={newsStore.isLoadingMore ? (
+                        <View style={styles.loadingMoreContainer}>
+                            <ActivityIndicator size="small" color={colors.primary} />
+                            <Text style={[styles.loadingMoreText, settingsStore.darkMode && styles.darkText]}>
+                                Loading more articles...
+                            </Text>
+                        </View>
+                    ) : null}
                 />
             ) : (
                 <View style={styles.emptyContainer}>
@@ -144,7 +158,18 @@ const styles = StyleSheet.create({
     },
     darkText: {
         color: colors.darkTextSecondary,
-    }
+    },
+    loadingMoreContainer: {
+        padding: SPACING.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+    },
+    loadingMoreText: {
+        ...typography.caption,
+        marginLeft: SPACING.sm,
+        color: colors.textSecondary,
+    },
 });
 
 export default HomeScreen;

@@ -21,6 +21,11 @@ class NewsStore {
     isOffline: boolean = false;
     sortOption: SortOption = 'newest';
 
+    currentPage: number = 1;
+    hasMoreArticles: boolean = true;
+    isLoadingMore: boolean = false;
+
+
     constructor() {
         makeAutoObservable(this);
         this.loadBookmarks();
@@ -134,36 +139,58 @@ class NewsStore {
         }
     }
 
-    async fetchTopHeadlines(country = 'us', category = '', refresh = false) {
-        this.isLoading = true;
+    async fetchTopHeadlines(country = 'us', category = '', page = 1, refresh = false) {
+        if (refresh || page === 1) {
+            this.isLoading = true;
+            runInAction(() => {
+                this.currentPage = 1;
+                this.hasMoreArticles = true;
+            });
+        } else {
+            this.isLoadingMore = true;
+        }
+
         this.error = null;
 
         try {
+            const existingArticles = category
+                ? this.categoryArticles[category] || []
+                : this.articles;
+
             const netInfo = await NetInfo.fetch();
             const isConnected = netInfo.isConnected;
 
             if (isConnected) {
-                const previousArticles = category
-                    ? this.categoryArticles[category] || []
-                    : this.articles;
-
-                const response = await newsApi.fetchTopHeadlines(country, category);
-
-                if (category) {
-                    await this.checkForCategoryUpdates(category, response.articles, previousArticles);
-                } else {
-                    await this.checkForBreakingNews(response.articles, previousArticles);
-                }
+                const response = await newsApi.fetchTopHeadlines(country, category, 20, page);
 
                 runInAction(() => {
-                    if (category) {
-                        this.categoryArticles[category] = this.sortArticles(response.articles);
-                        articleRepository.cacheCategoryArticles(category, response.articles);
+                    this.hasMoreArticles = response.articles.length > 0;
+
+                    if (page === 1) {
+                        if (category) {
+                            this.categoryArticles[category] = this.sortArticles(response.articles);
+                            articleRepository.cacheCategoryArticles(category, response.articles);
+                        } else {
+                            this.articles = this.sortArticles(response.articles);
+                            articleRepository.cacheArticles(response.articles);
+                        }
                     } else {
-                        this.articles = this.sortArticles(response.articles);
-                        articleRepository.cacheArticles(response.articles);
+                        if (category) {
+                            this.categoryArticles[category] = [
+                                ...existingArticles,
+                                ...this.sortArticles(response.articles)
+                            ];
+                        } else {
+                            this.articles = [
+                                ...existingArticles,
+                                ...this.sortArticles(response.articles)
+                            ];
+                        }
                     }
+
+                    this.currentPage = page;
                     this.isLoading = false;
+                    this.isLoadingMore = false;
                 });
             } else {
                 runInAction(() => {
@@ -221,6 +248,14 @@ class NewsStore {
         }
     }
 
+    async loadMoreArticles(country = 'us', category = '') {
+        if (this.isLoading || this.isLoadingMore || !this.hasMoreArticles) {
+            return;
+        }
+
+        const nextPage = this.currentPage + 1;
+        await this.fetchTopHeadlines(country, category, nextPage, false);
+    }
 
     async searchArticles(query: string) {
         if (!query.trim()) {
