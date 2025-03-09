@@ -174,8 +174,7 @@ Distributed under the MIT License.
 - Project Owner: Supun Lakshan
 - Project Repository: [NewsApp GitHub]((https://github.com/smartsupun/NewsApp))
 
-## Acknowledgements
-- NewsAPI for news content
-- Expo for mobile development framework
-- MobX for state management
-- React Native community
+## Download APK
+```
+- https://drive.google.com/file/d/1MWiL1NMAqior1PKaaLizQJ07Z0nXs4Mc/view?usp=sharing
+```
