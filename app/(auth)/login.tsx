@@ -18,8 +18,6 @@ import {
     FONT_SIZE,
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
-    IS_LANDSCAPE,
-    IS_LARGE_DEVICE
 } from '../../src/utils/constants';
 import typography from '../../src/theme/typography';
 
@@ -36,7 +34,6 @@ const LoginScreen = observer(() => {
             const biometricStatus = await LocalAuthentication.hasHardwareAsync();
             setIsBiometricAvailable(biometricStatus);
         };
-        // authStore.initialize();
         checkBiometric();
     }, []);
 
@@ -57,29 +54,23 @@ const LoginScreen = observer(() => {
 
     const handleGoogleLogin = async () => {
         try {
-            // Clear any existing authentication state completely
             await authStore.logout();
-            await authStore.initialize(); // Reinitialize to ensure clean state
+            await authStore.initialize();
 
-            // Prompt user to select Google account
             const result = await loginWithGoogle();
 
             if (result.success && result.user) {
-                // Explicitly set the current user and reinitialize
                 await authStore.setCurrentUser(result.user);
                 await authStore.initialize();
 
-                // Navigate to app
                 router.replace('/(app)');
             } else {
-                // More detailed error handling
                 Alert.alert(
                     'Google Login',
                     result.message || 'Google login failed. Please try again.',
                     [{
                         text: 'OK',
                         onPress: () => {
-                            // Optional: reset any partial authentication state
                             authStore.logout();
                         }
                     }]
@@ -87,8 +78,6 @@ const LoginScreen = observer(() => {
             }
         } catch (error) {
             console.error('Complete Google login process error:', error);
-
-            // Ensure clean logout if anything goes wrong
             await authStore.logout();
 
             Alert.alert(
@@ -239,12 +228,6 @@ const LoginScreen = observer(() => {
                             />
                         </TouchableOpacity>
                     </View>
-
-                    {/* <TouchableOpacity style={styles.forgotPassword}>
-                        <Text style={[styles.forgotPasswordText, settingsStore.darkMode && styles.darkLinkText]}>
-                            Forgot Password?
-                        </Text>
-                    </TouchableOpacity> */}
 
                     <TouchableOpacity
                         style={styles.loginButton}
@@ -519,7 +502,6 @@ const styles = StyleSheet.create({
     darkLinkText: {
         color: colors.primaryLight,
     },
-    // Additional responsive styles
     scrollViewContent: {
         flexGrow: 1,
         minHeight: SCREEN_HEIGHT,
@@ -527,16 +509,7 @@ const styles = StyleSheet.create({
     keyboardAvoidingView: {
         flex: 1,
         width: SCREEN_WIDTH,
-    },
-    // For different device size adjustments
-    landscapeAdjustment: {
-        paddingHorizontal: IS_LANDSCAPE ? SPACING.xxl : SPACING.lg,
-    },
-    tabletAdjustment: {
-        paddingHorizontal: IS_LARGE_DEVICE ? SPACING.xxl : SPACING.lg,
-        maxWidth: IS_LARGE_DEVICE ? 600 : '100%',
-        alignSelf: 'center',
-    },
+    }
 });
 
 export default LoginScreen;

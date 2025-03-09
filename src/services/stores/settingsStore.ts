@@ -14,17 +14,12 @@ class SettingsStore {
     async initialize() {
         this.isLoading = true;
         try {
-            // Load dark mode setting
             const darkModeValue = await AsyncStorage.getItem('newsapp_dark_mode');
 
-            // Load wifi-only downloads setting
-            const wifiOnlyValue = await AsyncStorage.getItem('newsapp_wifi_only');
 
             runInAction(() => {
                 this.darkMode = darkModeValue === 'true';
-                if (wifiOnlyValue !== null) {
-                    this.wifiOnlyDownloads = JSON.parse(wifiOnlyValue);
-                }
+
                 this.isLoading = false;
             });
         } catch (error) {
@@ -47,15 +42,6 @@ class SettingsStore {
         }
     }
 
-    async toggleWifiOnlyDownloads() {
-        this.wifiOnlyDownloads = !this.wifiOnlyDownloads;
-
-        try {
-            await AsyncStorage.setItem('newsapp_wifi_only', JSON.stringify(this.wifiOnlyDownloads));
-        } catch (error) {
-            console.error('Error saving wifi only setting:', error);
-        }
-    }
 }
 
 export default new SettingsStore();

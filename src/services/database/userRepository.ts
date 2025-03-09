@@ -2,22 +2,19 @@ import { User, UserData } from '../../models/User';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
-// Storage keys
+
 const USERS_STORAGE_KEY = 'newsapp_users';
 const ACTIVE_ACCOUNTS_STORAGE_KEY = 'newsapp_active_accounts';
 const USER_PASSWORD_PREFIX = 'newsapp_password_';
 const CURRENT_USER_KEY = 'newsapp_current_user';
 
-// Initialize storage if needed
 export const initStorage = async (): Promise<void> => {
     try {
-        // Check if users storage exists, initialize if not
         const usersJson = await AsyncStorage.getItem(USERS_STORAGE_KEY);
         if (usersJson === null) {
             await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([]));
         }
 
-        // Check if active accounts storage exists, initialize if not
         const activeAccountsJson = await AsyncStorage.getItem(ACTIVE_ACCOUNTS_STORAGE_KEY);
         if (activeAccountsJson === null) {
             await AsyncStorage.setItem(ACTIVE_ACCOUNTS_STORAGE_KEY, JSON.stringify([]));
@@ -30,7 +27,6 @@ export const initStorage = async (): Promise<void> => {
     }
 };
 
-// Get all users
 const getUsers = async (): Promise<User[]> => {
     try {
         const usersJson = await AsyncStorage.getItem(USERS_STORAGE_KEY);
@@ -49,7 +45,6 @@ const getUsers = async (): Promise<User[]> => {
     }
 };
 
-// Save users
 const saveUsers = async (users: User[]): Promise<void> => {
     try {
         const usersData = users.map(user => ({
@@ -65,20 +60,16 @@ const saveUsers = async (users: User[]): Promise<void> => {
     }
 };
 
-// Create user
 export const createUser = async (userData: UserData, password?: string): Promise<User> => {
     try {
         const user = new User(userData);
 
-        // If password provided, store it securely
         if (password) {
             await SecureStore.setItemAsync(`${USER_PASSWORD_PREFIX}${user.id}`, password);
         }
 
-        // Get existing users and add the new one
         const users = await getUsers();
 
-        // Check if email already exists
         const existingUser = users.find(u =>
             u.email === user.email && u.authProvider === user.authProvider
         );
@@ -97,7 +88,6 @@ export const createUser = async (userData: UserData, password?: string): Promise
     }
 };
 
-// Get user by email
 export const getUserByEmail = async (email: string, authProvider = 'email'): Promise<User | null> => {
     try {
         const users = await getUsers();
@@ -109,7 +99,6 @@ export const getUserByEmail = async (email: string, authProvider = 'email'): Pro
     }
 };
 
-// Get user by ID
 export const getUserById = async (id: string): Promise<User | null> => {
     try {
         const users = await getUsers();
@@ -121,7 +110,6 @@ export const getUserById = async (id: string): Promise<User | null> => {
     }
 };
 
-// Update user
 export const updateUser = async (user: User): Promise<User> => {
     try {
         const users = await getUsers();
@@ -134,7 +122,6 @@ export const updateUser = async (user: User): Promise<User> => {
         users[index] = user;
         await saveUsers(users);
 
-        // If this is the current user, update the current user storage
         const currentUserJson = await AsyncStorage.getItem(CURRENT_USER_KEY);
         if (currentUserJson) {
             const currentUser = JSON.parse(currentUserJson);
@@ -150,7 +137,6 @@ export const updateUser = async (user: User): Promise<User> => {
     }
 };
 
-// Get active accounts
 export const getActiveAccounts = async (): Promise<User[]> => {
     try {
         const activeAccountsJson = await AsyncStorage.getItem(ACTIVE_ACCOUNTS_STORAGE_KEY);
@@ -159,7 +145,6 @@ export const getActiveAccounts = async (): Promise<User[]> => {
         const activeAccountIds = JSON.parse(activeAccountsJson);
         const users = await getUsers();
 
-        // Filter users that are in the active accounts list and sort by lastActive
         return activeAccountIds
             .map((item: any) => {
                 const user = users.find(u => u.id === item.userId);
@@ -174,18 +159,15 @@ export const getActiveAccounts = async (): Promise<User[]> => {
     }
 };
 
-// Add active account
 export const addActiveAccount = async (user: User): Promise<void> => {
     try {
         const activeAccountsJson = await AsyncStorage.getItem(ACTIVE_ACCOUNTS_STORAGE_KEY);
         const activeAccounts = activeAccountsJson ? JSON.parse(activeAccountsJson) : [];
 
-        // Remove the user if already in the list
         const filteredAccounts = activeAccounts.filter(
             (account: any) => account.userId !== user.id
         );
 
-        // Add the user as the most recent active account
         filteredAccounts.push({
             userId: user.id,
             lastActive: new Date().toISOString()
@@ -198,8 +180,6 @@ export const addActiveAccount = async (user: User): Promise<void> => {
     }
 };
 
-// Remove active account
-// Remove active account
 export const removeActiveAccount = async (userId: string): Promise<void> => {
     try {
         console.log('Remove active account - userId:', userId);
@@ -221,7 +201,6 @@ export const removeActiveAccount = async (userId: string): Promise<void> => {
         console.log('Filtered accounts:', filteredAccounts);
         await AsyncStorage.setItem(ACTIVE_ACCOUNTS_STORAGE_KEY, JSON.stringify(filteredAccounts));
 
-        // Verify the update worked
         const updatedJson = await AsyncStorage.getItem(ACTIVE_ACCOUNTS_STORAGE_KEY);
         console.log('Active accounts after removal:', updatedJson);
     } catch (error) {
@@ -229,8 +208,6 @@ export const removeActiveAccount = async (userId: string): Promise<void> => {
         throw error;
     }
 };
-
-// Set current user
 export const setCurrentUser = async (user: User): Promise<void> => {
     try {
         await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
@@ -241,7 +218,6 @@ export const setCurrentUser = async (user: User): Promise<void> => {
     }
 };
 
-// Get current user
 export const getCurrentUser = async (): Promise<User | null> => {
     try {
         const userJson = await AsyncStorage.getItem(CURRENT_USER_KEY);
@@ -260,7 +236,6 @@ export const getCurrentUser = async (): Promise<User | null> => {
     }
 };
 
-// Clear current user
 export const clearCurrentUser = async (): Promise<void> => {
     try {
         await AsyncStorage.removeItem(CURRENT_USER_KEY);
@@ -270,7 +245,6 @@ export const clearCurrentUser = async (): Promise<void> => {
     }
 };
 
-// Verify password
 export const verifyPassword = async (userId: string, password: string): Promise<boolean> => {
     try {
         const storedPassword = await SecureStore.getItemAsync(`${USER_PASSWORD_PREFIX}${userId}`);
@@ -281,7 +255,6 @@ export const verifyPassword = async (userId: string, password: string): Promise<
     }
 };
 
-// Change password
 export const changePassword = async (userId: string, newPassword: string): Promise<boolean> => {
     try {
         await SecureStore.setItemAsync(`${USER_PASSWORD_PREFIX}${userId}`, newPassword);

@@ -1,4 +1,3 @@
-// src/services/stores/newsStore.ts
 import { makeAutoObservable, runInAction } from 'mobx';
 import { Article } from '../../models/Article';
 import * as newsApi from '../api/newsApi';
@@ -33,7 +32,6 @@ class NewsStore {
         const netInfo = await NetInfo.fetch();
         this.isOffline = !netInfo.isConnected;
 
-        // Subscribe to network state updates
         NetInfo.addEventListener(state => {
             runInAction(() => {
                 this.isOffline = !state.isConnected;
@@ -74,28 +72,26 @@ class NewsStore {
         this.sortAllArticles();
     }
 
-    // Apply current sort option to all article collections
+
     sortAllArticles() {
         this.articles = this.sortArticles(this.articles);
         this.searchResults = this.sortArticles(this.searchResults);
         this.bookmarkedArticles = this.sortArticles(this.bookmarkedArticles);
 
-        // Sort category articles
         Object.keys(this.categoryArticles).forEach(category => {
             this.categoryArticles[category] = this.sortArticles(this.categoryArticles[category]);
         });
     }
 
-    // Sort an array of articles based on the current sort option
     sortArticles(articlesToSort: Article[]): Article[] {
         return [...articlesToSort].sort((a, b) => {
             const dateA = new Date(a.publishedAt).getTime();
             const dateB = new Date(b.publishedAt).getTime();
 
             if (this.sortOption === 'newest') {
-                return dateB - dateA; // Newest first
+                return dateB - dateA;
             } else {
-                return dateA - dateB; // Oldest first
+                return dateA - dateB;
             }
         });
     }
@@ -138,26 +134,21 @@ class NewsStore {
         }
     }
 
-    // Fetch articles with offline support
     async fetchTopHeadlines(country = 'us', category = '', refresh = false) {
         this.isLoading = true;
         this.error = null;
 
         try {
-            // Check if we're online
             const netInfo = await NetInfo.fetch();
             const isConnected = netInfo.isConnected;
 
             if (isConnected) {
-                // Get previous articles to compare with new ones
                 const previousArticles = category
                     ? this.categoryArticles[category] || []
                     : this.articles;
 
-                // Online: fetch from API
                 const response = await newsApi.fetchTopHeadlines(country, category);
 
-                // Check for notifications before updating the store
                 if (category) {
                     await this.checkForCategoryUpdates(category, response.articles, previousArticles);
                 } else {
@@ -167,17 +158,14 @@ class NewsStore {
                 runInAction(() => {
                     if (category) {
                         this.categoryArticles[category] = this.sortArticles(response.articles);
-                        // Cache category articles
                         articleRepository.cacheCategoryArticles(category, response.articles);
                     } else {
                         this.articles = this.sortArticles(response.articles);
-                        // Cache main articles
                         articleRepository.cacheArticles(response.articles);
                     }
                     this.isLoading = false;
                 });
             } else {
-                // Offline: load from cache
                 runInAction(() => {
                     this.isOffline = true;
                 });
@@ -208,7 +196,6 @@ class NewsStore {
                 this.isLoading = false;
             });
 
-            // If API fails, try to load from cache
             try {
                 let cachedArticles: Article[] = [];
                 if (category) {
@@ -247,12 +234,10 @@ class NewsStore {
         this.error = null;
 
         try {
-            // Check if we're online
             const netInfo = await NetInfo.fetch();
             const isConnected = netInfo.isConnected;
 
             if (isConnected) {
-                // Online: search via API
                 const response = await newsApi.searchNews(query);
 
                 runInAction(() => {
@@ -260,7 +245,6 @@ class NewsStore {
                     this.isLoading = false;
                 });
             } else {
-                // Offline: search in cached articles
                 runInAction(() => {
                     this.isOffline = true;
                 });
@@ -271,19 +255,16 @@ class NewsStore {
                         .map(c => articleRepository.getCachedCategoryArticles(c))
                 );
 
-                // Combine all cached articles for searching
                 const allCachedArticles = [
                     ...cachedArticles,
                     ...categoryArticlesAll.flat(),
                     ...this.bookmarkedArticles
                 ];
 
-                // Remove duplicates
                 const uniqueArticles = Array.from(
                     new Map(allCachedArticles.map(item => [item.url, item])).values()
                 );
 
-                // Search in cached articles
                 const queryLower = query.toLowerCase();
                 const results = uniqueArticles.filter(article =>
                     article.title.toLowerCase().includes(queryLower) ||
@@ -343,19 +324,15 @@ class NewsStore {
 
     private async checkForBreakingNews(newArticles: Article[], oldArticles: Article[] = []) {
         try {
-            // Get notification settings
             const settings = await getNotificationSettings();
 
-            // If notifications or breaking news notifications are disabled, return
             if (!settings.enabled || !settings.breakingNews) return;
 
-            // Get articles that contain "breaking" in the title and aren't in oldArticles
             const breakingNews = newArticles.filter(article =>
                 article.title.toLowerCase().includes('breaking') &&
                 !oldArticles.some(oldArticle => oldArticle.url === article.url)
             );
 
-            // If we have breaking news, send a notification for the first one
             if (breakingNews.length > 0) {
                 const article = breakingNews[0];
                 await sendImmediateNotification(
@@ -375,18 +352,15 @@ class NewsStore {
     }
     private async checkForCategoryUpdates(category: string, newArticles: Article[], oldArticles: Article[] = []) {
         try {
-            // Get notification settings
+
             const settings = await getNotificationSettings();
 
-            // If notifications are disabled or category isn't in user's preferences, return
             if (!settings.enabled || !settings.categories.includes(category)) return;
 
-            // Check if there are any new articles not in the old list
             const newUpdates = newArticles.filter(article =>
                 !oldArticles.some(oldArticle => oldArticle.url === article.url)
             );
 
-            // If we have new articles, send a notification
             if (newUpdates.length > 0) {
                 const categoryName = category.charAt(0).toUpperCase() + category.slice(1);
                 await sendImmediateNotification(

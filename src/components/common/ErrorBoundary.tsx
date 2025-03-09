@@ -27,17 +27,11 @@ class ErrorBoundary extends Component<Props, State> {
     }
 
     static getDerivedStateFromError(error: Error): State {
-        // Update state so the next render will show the fallback UI
         return { hasError: true, error, errorInfo: null };
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-        // Log the error to an error reporting service
         console.error('Error caught by boundary:', error, errorInfo);
-
-        // Optional: Report to Sentry
-        // Sentry.captureException(error);
-
         this.setState({ errorInfo });
     }
 
@@ -47,12 +41,10 @@ class ErrorBoundary extends Component<Props, State> {
 
     render(): ReactNode {
         if (this.state.hasError) {
-            // If a custom fallback is provided, use it
             if (this.props.fallback) {
                 return this.props.fallback;
             }
 
-            // Default fallback UI
             return (
                 <View style={styles.container}>
                     <FontAwesome name="exclamation-triangle" size={48} color={colors.error} />

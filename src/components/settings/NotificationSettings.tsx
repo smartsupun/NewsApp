@@ -1,5 +1,3 @@
-// src/components/settings/NotificationSettings.tsx
-
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
@@ -63,7 +61,6 @@ const NotificationSettings = observer(() => {
     };
 
     const handleToggleSetting = async (key: keyof NotificationSettingsType, value: boolean) => {
-        // If enabling notifications, request permissions first
         if (key === 'enabled' && value) {
             const permissionGranted = await requestNotificationPermissions();
             if (!permissionGranted) {
@@ -80,12 +77,10 @@ const NotificationSettings = observer(() => {
         setSettings(updatedSettings);
         await saveNotificationSettings(updatedSettings);
 
-        // If enabling daily digest, schedule it
         if (key === 'dailyDigest' && value) {
             await scheduleDailyDigest();
         }
 
-        // Update user preferences in auth store
         if (key === 'enabled' && authStore.currentUser) {
             await authStore.updateUserProfile({
                 preferences: {
@@ -100,7 +95,6 @@ const NotificationSettings = observer(() => {
         let updatedCategories: string[];
 
         if (settings.categories.includes(categoryId)) {
-            // Remove category if at least one will remain
             if (settings.categories.length > 1) {
                 updatedCategories = settings.categories.filter(id => id !== categoryId);
             } else {
@@ -108,7 +102,6 @@ const NotificationSettings = observer(() => {
                 return;
             }
         } else {
-            // Add category
             updatedCategories = [...settings.categories, categoryId];
         }
 

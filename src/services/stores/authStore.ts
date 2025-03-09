@@ -33,15 +33,15 @@ class AuthStore {
     async initialize() {
         this.isLoading = true;
         try {
-            // Load current user from storage
+
             const user = await getCurrentUser();
             console.log('Initialize - Current User:', user ? user.id : 'none');
 
-            // Load active accounts
+
             const accounts = await getActiveAccounts();
             console.log('Initialize - Active Accounts:', accounts.length, accounts.map(a => a.id));
 
-            // Check biometric availability
+
             const biometricStatus = await checkBiometricAvailability();
 
             runInAction(() => {
@@ -49,11 +49,9 @@ class AuthStore {
                 this.activeAccounts = accounts;
                 this.isBiometricAvailable = biometricStatus.available;
 
-                // Map biometric type for UI
+
                 if (biometricStatus.biometricTypes.includes(1)) {
                     this.biometricType = 'Fingerprint';
-                } else if (biometricStatus.biometricTypes.includes(2)) {
-                    this.biometricType = 'Face ID';
                 } else {
                     this.biometricType = 'Biometric';
                 }
@@ -116,7 +114,6 @@ class AuthStore {
                 runInAction(() => {
                     this.currentUser = user;
 
-                    // Update active accounts
                     if (!this.activeAccounts.some(account => account.id === user.id)) {
                         this.activeAccounts = [...this.activeAccounts, user];
                     } else {
@@ -151,13 +148,11 @@ class AuthStore {
         try {
             await setCurrentUserInDb(user);
 
-            // Initialize notifications for this user
             await initializeNotifications(user);
 
             runInAction(() => {
                 this.currentUser = user;
 
-                // Update active accounts
                 if (!this.activeAccounts.some(account => account.id === user.id)) {
                     this.activeAccounts = [...this.activeAccounts, user];
                 } else {
@@ -182,22 +177,18 @@ class AuthStore {
                 throw new Error('No user is currently logged in');
             }
 
-            // Create an updated user object with the new data
             const updatedUser = new User({
                 ...this.currentUser,
                 ...userData
             });
 
-            // Save to the database
             await updateUser(updatedUser);
 
-            // Update the current user in storage
             await setCurrentUserInDb(updatedUser);
 
             runInAction(() => {
                 this.currentUser = updatedUser;
 
-                // Update in active accounts as well
                 this.activeAccounts = this.activeAccounts.map(account =>
                     account.id === updatedUser.id ? updatedUser : account
                 );
@@ -224,22 +215,18 @@ class AuthStore {
                 throw new Error('No user is currently logged in');
             }
 
-            // Create updated user with the new profile picture
             const updatedUser = new User({
                 ...this.currentUser,
                 profilePicture: imageUri
             });
 
-            // Save to the database
             await updateUser(updatedUser);
 
-            // Update the current user in storage
             await setCurrentUserInDb(updatedUser);
 
             runInAction(() => {
                 this.currentUser = updatedUser;
 
-                // Update in active accounts as well
                 this.activeAccounts = this.activeAccounts.map(account =>
                     account.id === updatedUser.id ? updatedUser : account
                 );
@@ -288,8 +275,6 @@ class AuthStore {
         }
     }
 
-    // In authStore.ts, the logout method should be updated to call authStore.initialize():
-
     async logout() {
         this.isLoading = true;
 
@@ -300,7 +285,6 @@ class AuthStore {
                 await clearCurrentUser();
             }
 
-            // Completely reset the store state
             runInAction(() => {
                 this.currentUser = null;
                 this.activeAccounts = [];
@@ -319,31 +303,7 @@ class AuthStore {
             return { success: false, message: error.message };
         }
     }
-    async logoutAll() {
-        this.isLoading = true;
 
-        try {
-            for (const account of this.activeAccounts) {
-                await removeActiveAccount(account.id);
-            }
-
-            await clearCurrentUser();
-
-            runInAction(() => {
-                this.currentUser = null;
-                this.activeAccounts = [];
-                this.isLoading = false;
-            });
-
-            return { success: true };
-        } catch (error: any) {
-            runInAction(() => {
-                this.isLoading = false;
-            });
-
-            return { success: false, message: error.message };
-        }
-    }
 }
 
 export default new AuthStore();
