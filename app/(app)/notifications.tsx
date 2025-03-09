@@ -1,7 +1,5 @@
-// app/(app)/notifications.tsx
-
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';

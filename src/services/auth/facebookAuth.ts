@@ -10,10 +10,8 @@ import {
     clearCurrentUser
 } from '../database/userRepository';
 
-// Ensure web browser session is completed
 WebBrowser.maybeCompleteAuthSession();
 
-// Cognito configuration
 const COGNITO_CONFIG = {
     userPoolWebClientId: '6i3eoe6ab26tn8r6ljmm36cskb',
     domain: 'ap-southeast-1335m9qdxx.auth.ap-southeast-1.amazoncognito.com',
@@ -21,7 +19,6 @@ const COGNITO_CONFIG = {
 };
 
 const useFacebookAuth = () => {
-    // Generate redirect URI with explicit configuration
     const redirectUri = AuthSession.makeRedirectUri({
         scheme: Platform.select({
             native: 'newsapp',
@@ -29,7 +26,6 @@ const useFacebookAuth = () => {
         }),
     });
 
-    // Cognito discovery endpoints
     const discovery = {
         authorizationEndpoint: `https://${COGNITO_CONFIG.domain}/oauth2/authorize`,
         tokenEndpoint: `https://${COGNITO_CONFIG.domain}/oauth2/token`,
@@ -37,7 +33,6 @@ const useFacebookAuth = () => {
         userInfoEndpoint: `https://${COGNITO_CONFIG.domain}/oauth2/userInfo`
     };
 
-    // Authentication request configuration
     const [request, response, promptAsync] = AuthSession.useAuthRequest(
         {
             clientId: COGNITO_CONFIG.userPoolWebClientId,
@@ -48,9 +43,7 @@ const useFacebookAuth = () => {
 
             extraParams: {
                 response_mode: 'query',
-                // Ensure account selection and re-authentication
                 prompt: 'login select_account max_age=0',
-                // Specify Facebook as the identity provider
                 identity_provider: 'Facebook'
             }
         },
@@ -59,7 +52,6 @@ const useFacebookAuth = () => {
 
     const loginWithFacebook = async () => {
         try {
-            // Clear any existing authentication state
             await clearCurrentUser();
 
             console.log('Facebook Login Attempt');
@@ -67,7 +59,6 @@ const useFacebookAuth = () => {
             console.log('Redirect URI:', redirectUri);
             console.log('Facebook App ID:', COGNITO_CONFIG.facebookAppId);
 
-            // Trigger authentication with explicit parameters
             const result = await promptAsync({
                 useProxy: Platform.OS === 'web',
                 showInRecents: true,
@@ -81,7 +72,6 @@ const useFacebookAuth = () => {
 
             console.log('Authentication Result:', JSON.stringify(result, null, 2));
 
-            // Handle authentication failure
             if (result.type !== 'success') {
                 return {
                     success: false,
@@ -91,7 +81,6 @@ const useFacebookAuth = () => {
                 };
             }
 
-            // Exchange authorization code for tokens
             const tokenResult = await AuthSession.exchangeCodeAsync(
                 {
                     clientId: COGNITO_CONFIG.userPoolWebClientId,
@@ -108,12 +97,10 @@ const useFacebookAuth = () => {
 
             console.log('Token Exchange Result:', JSON.stringify(tokenResult, null, 2));
 
-            // Validate access token
             if (!tokenResult.accessToken) {
                 throw new Error('No access token received');
             }
 
-            // Fetch user information
             const userInfoResponse = await fetch(
                 `https://${COGNITO_CONFIG.domain}/oauth2/userInfo`,
                 {
@@ -123,7 +110,6 @@ const useFacebookAuth = () => {
                 }
             );
 
-            // Validate user info response
             if (!userInfoResponse.ok) {
                 throw new Error(`User info fetch failed: ${userInfoResponse.status}`);
             }
@@ -132,26 +118,20 @@ const useFacebookAuth = () => {
 
             console.log('User Data:', JSON.stringify(userData, null, 2));
 
-            // Validate email
             if (!userData.email) {
                 throw new Error('No email received from Facebook');
             }
 
-            // Find existing user
             let existingUser = await getUserByEmail(userData.email, 'facebook');
 
-            // Handle user management with more robust logic
             if (existingUser) {
-                // Update existing user's details
                 existingUser.firstName = userData.given_name || existingUser.firstName;
                 existingUser.lastName = userData.family_name || existingUser.lastName;
                 existingUser.profilePicture = userData.picture || existingUser.profilePicture;
                 existingUser.lastLoginAt = new Date();
 
-                // Update user in database
                 await updateUser(existingUser);
             } else {
-                // Create new user
                 existingUser = await createUser({
                     id: `facebook_${userData.sub}`,
                     firstName: userData.given_name || '',
@@ -164,16 +144,13 @@ const useFacebookAuth = () => {
                 });
             }
 
-            // Set as current user
             await setCurrentUser(existingUser);
 
             return { success: true, user: existingUser };
 
         } catch (error) {
-            // Comprehensive error logging
             console.error('Complete Facebook Authentication Error:', error);
 
-            // More detailed error handling
             if (error instanceof Error) {
                 if (error.message.includes('already exists')) {
                     return {
@@ -182,7 +159,6 @@ const useFacebookAuth = () => {
                     };
                 }
 
-                // Check for common authentication errors
                 if (error.message.includes('invalid_grant')) {
                     return {
                         success: false,
@@ -202,8 +178,8 @@ const useFacebookAuth = () => {
 
     return {
         loginWithFacebook,
-        request,  // Expose request for potential advanced use cases
-        response  // Expose response for potential advanced use cases
+        request,
+        response
     };
 };
 

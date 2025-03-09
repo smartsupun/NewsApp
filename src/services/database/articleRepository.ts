@@ -1,13 +1,10 @@
-// src/services/database/articleRepository.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Article } from '../../models/Article';
 
-// Storage keys
 const CACHED_ARTICLES_KEY = 'newsapp_cached_articles';
 const CATEGORY_ARTICLES_KEY = 'newsapp_category_articles';
 const LAST_FETCH_TIME_KEY = 'newsapp_last_fetch_time';
 
-// Save articles to local storage
 export const cacheArticles = async (articles: Article[]): Promise<void> => {
     try {
         await AsyncStorage.setItem(CACHED_ARTICLES_KEY, JSON.stringify(articles));
@@ -17,17 +14,14 @@ export const cacheArticles = async (articles: Article[]): Promise<void> => {
     }
 };
 
-// Cache articles by category
 export const cacheCategoryArticles = async (
     category: string,
     articles: Article[]
 ): Promise<void> => {
     try {
-        // Get existing categories data or initialize empty object
         const categoryDataJson = await AsyncStorage.getItem(CATEGORY_ARTICLES_KEY);
         const categoryData = categoryDataJson ? JSON.parse(categoryDataJson) : {};
 
-        // Update with new data for this category
         categoryData[category] = {
             articles,
             timestamp: new Date().toISOString()
@@ -39,7 +33,6 @@ export const cacheCategoryArticles = async (
     }
 };
 
-// Get cached articles
 export const getCachedArticles = async (): Promise<Article[]> => {
     try {
         const articlesJson = await AsyncStorage.getItem(CACHED_ARTICLES_KEY);
@@ -51,7 +44,6 @@ export const getCachedArticles = async (): Promise<Article[]> => {
     }
 };
 
-// Get category articles
 export const getCachedCategoryArticles = async (category: string): Promise<Article[]> => {
     try {
         const categoryDataJson = await AsyncStorage.getItem(CATEGORY_ARTICLES_KEY);
@@ -67,7 +59,6 @@ export const getCachedCategoryArticles = async (category: string): Promise<Artic
     }
 };
 
-// Get last fetch time
 export const getLastFetchTime = async (): Promise<Date | null> => {
     try {
         const timestamp = await AsyncStorage.getItem(LAST_FETCH_TIME_KEY);
@@ -79,7 +70,7 @@ export const getLastFetchTime = async (): Promise<Date | null> => {
     }
 };
 
-// Clear cache
+
 export const clearArticleCache = async (): Promise<void> => {
     try {
         await AsyncStorage.removeItem(CACHED_ARTICLES_KEY);

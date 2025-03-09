@@ -7,7 +7,6 @@ import {
     setCurrentUser
 } from '../database/userRepository';
 
-// Check if biometric authentication is available
 export const checkBiometricAvailability = async (): Promise<{
     available: boolean;
     biometricTypes: LocalAuthentication.AuthenticationType[];
@@ -36,7 +35,6 @@ export const checkBiometricAvailability = async (): Promise<{
     }
 };
 
-// Enable biometric authentication for a user
 export const enableBiometricAuth = async (userId: string): Promise<{ success: boolean; message?: string }> => {
     try {
         const biometricStatus = await checkBiometricAvailability();
@@ -45,17 +43,14 @@ export const enableBiometricAuth = async (userId: string): Promise<{ success: bo
             return { success: false, message: biometricStatus.message };
         }
 
-        // Store the user ID for biometric authentication
         await AsyncStorage.setItem('newsapp_biometric_user_id', userId);
 
-        // Get user to update preferences
         const user = await getUserById(userId);
 
         if (!user) {
             return { success: false, message: 'User not found' };
         }
 
-        // Update user preferences
         user.preferences.biometricEnabled = true;
         await updateUser(user);
 
@@ -66,19 +61,16 @@ export const enableBiometricAuth = async (userId: string): Promise<{ success: bo
     }
 };
 
-// Disable biometric authentication
 export const disableBiometricAuth = async (userId: string): Promise<{ success: boolean; message?: string }> => {
     try {
         await AsyncStorage.removeItem('newsapp_biometric_user_id');
 
-        // Get user to update preferences
         const user = await getUserById(userId);
 
         if (!user) {
             return { success: false, message: 'User not found' };
         }
 
-        // Update user preferences
         user.preferences.biometricEnabled = false;
         await updateUser(user);
 
@@ -89,17 +81,14 @@ export const disableBiometricAuth = async (userId: string): Promise<{ success: b
     }
 };
 
-// Authenticate with biometrics
 export const authenticateWithBiometrics = async (): Promise<{ success: boolean; user?: User; message?: string }> => {
     try {
-        // Check if biometric auth is enabled
         const biometricUserId = await AsyncStorage.getItem('newsapp_biometric_user_id');
 
         if (!biometricUserId) {
             return { success: false, message: 'Biometric authentication is not enabled' };
         }
 
-        // Authenticate
         const result = await LocalAuthentication.authenticateAsync({
             promptMessage: 'Login with Fingerprint',
             disableDeviceFallback: false,
@@ -107,18 +96,15 @@ export const authenticateWithBiometrics = async (): Promise<{ success: boolean; 
         });
 
         if (result.success) {
-            // Get user data
             const user = await getUserById(biometricUserId);
 
             if (!user) {
                 return { success: false, message: 'User not found' };
             }
 
-            // Update last login time
             user.lastLoginAt = new Date();
             await updateUser(user);
 
-            // Set as current user
             await setCurrentUser(user);
 
             return { success: true, user };

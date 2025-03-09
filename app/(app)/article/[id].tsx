@@ -25,11 +25,9 @@ const ArticleDetailScreen = observer(() => {
     useEffect(() => {
         if (id) {
             try {
-                // First try to use it directly
                 let url = decodeURIComponent(id);
                 let foundArticle = newsStore.getArticleByUrl(url);
 
-                // If not found, try another approach
                 if (!foundArticle) {
                     const allArticles = [
                         ...newsStore.articles,

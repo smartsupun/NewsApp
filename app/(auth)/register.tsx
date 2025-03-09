@@ -33,7 +33,7 @@ import {
     IS_LARGE_DEVICE
 } from '../../src/utils/constants';
 
-// Form validation schema
+
 const validationSchema = yup.object().shape({
     firstName: yup.string().required('First name is required'),
     lastName: yup.string().required('Last name is required'),
@@ -56,7 +56,7 @@ const validationSchema = yup.object().shape({
 });
 
 const RegisterScreen = observer(() => {
-    // Form state
+
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -68,24 +68,24 @@ const RegisterScreen = observer(() => {
         termsAccepted: false
     });
 
-    // UI state
+
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
-    // Social auth hooks
+
     const { loginWithGoogle } = useGoogleAuth();
     const { loginWithFacebook } = useFacebookAuth();
 
-    // Update form data
+
     const handleChange = (field: string, value: any) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
 
-        // Clear error when field is edited
+
         if (formErrors[field]) {
             setFormErrors(prev => {
                 const updated = { ...prev };
@@ -95,7 +95,7 @@ const RegisterScreen = observer(() => {
         }
     };
 
-    // Validate a single field
+
     const validateField = async (field: string) => {
         try {
             const schema = yup.reach(validationSchema, field) as yup.Schema<any>;
@@ -117,7 +117,7 @@ const RegisterScreen = observer(() => {
         }
     };
 
-    // Validate all fields
+
     const validateForm = async () => {
         try {
             await validationSchema.validate(formData, { abortEarly: false });
@@ -137,7 +137,7 @@ const RegisterScreen = observer(() => {
         }
     };
 
-    // Handle registration
+
     const handleRegister = async () => {
         const isValid = await validateForm();
 
@@ -161,13 +161,10 @@ const RegisterScreen = observer(() => {
         }
     };
 
-    // Handle Google registration
     const handleGoogleRegister = async () => {
         const result = await loginWithGoogle();
 
         if (result.success && result.user) {
-            // Here we might want to collect additional info not provided by Google
-            // For now, we'll just set the current user and navigate
             await authStore.setCurrentUser(result.user);
             router.replace('/(app)');
         } else {
@@ -175,7 +172,6 @@ const RegisterScreen = observer(() => {
         }
     };
 
-    // Handle Facebook registration
     const handleFacebookRegister = async () => {
         const result = await loginWithFacebook();
 
@@ -187,7 +183,6 @@ const RegisterScreen = observer(() => {
         }
     };
 
-    // Format date for display
     const formatDate = (date: Date) => {
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
@@ -239,7 +234,6 @@ const RegisterScreen = observer(() => {
                 </View>
 
                 <View style={styles.formContainer}>
-                    {/* First Name */}
                     <View style={styles.nameContainer}>
                         <View style={[
                             styles.inputContainer,
@@ -257,7 +251,6 @@ const RegisterScreen = observer(() => {
                             />
                         </View>
 
-                        {/* Last Name */}
                         <View style={[
                             styles.inputContainer,
                             styles.halfWidth,
@@ -275,7 +268,6 @@ const RegisterScreen = observer(() => {
                         </View>
                     </View>
 
-                    {/* Error messages for name fields */}
                     <View style={styles.nameContainer}>
                         {formErrors.firstName && (
                             <Text style={[styles.errorText, styles.halfWidth]}>{formErrors.firstName}</Text>
@@ -285,7 +277,6 @@ const RegisterScreen = observer(() => {
                         )}
                     </View>
 
-                    {/* Email */}
                     <View style={[
                         styles.inputContainer,
                         ...(formErrors.email ? [styles.inputError] : []),
@@ -304,7 +295,6 @@ const RegisterScreen = observer(() => {
                     </View>
                     {formErrors.email && <Text style={styles.errorText}>{formErrors.email}</Text>}
 
-                    {/* Mobile Number */}
                     <View style={[
                         styles.inputContainer,
                         ...(formErrors.mobileNumber ? [styles.inputError] : []),
@@ -322,7 +312,6 @@ const RegisterScreen = observer(() => {
                     </View>
                     {formErrors.mobileNumber && <Text style={styles.errorText}>{formErrors.mobileNumber}</Text>}
 
-                    {/* Date of Birth */}
                     <TouchableOpacity
                         style={[
                             styles.inputContainer,
@@ -365,7 +354,6 @@ const RegisterScreen = observer(() => {
                         />
                     )}
 
-                    {/* Password */}
                     <View style={[
                         styles.inputContainer,
                         formErrors.password ? styles.inputError : null,
@@ -393,7 +381,6 @@ const RegisterScreen = observer(() => {
                     </View>
                     {formErrors.password && <Text style={styles.errorText}>{formErrors.password}</Text>}
 
-                    {/* Confirm Password */}
                     <View style={[
                         styles.inputContainer,
                         formErrors.confirmPassword ? styles.inputError : null,
@@ -421,7 +408,6 @@ const RegisterScreen = observer(() => {
                     </View>
                     {formErrors.confirmPassword && <Text style={styles.errorText}>{formErrors.confirmPassword}</Text>}
 
-                    {/* Terms and Conditions */}
                     <TouchableOpacity
                         style={styles.termsContainer}
                         onPress={() => handleChange('termsAccepted', !formData.termsAccepted)}

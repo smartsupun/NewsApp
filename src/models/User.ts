@@ -65,15 +65,4 @@ export class User {
         };
     }
 
-    get fullName(): string {
-        return `${this.firstName} ${this.lastName}`.trim();
-    }
-
-    get initials(): string {
-        return `${this.firstName.charAt(0)}${this.lastName.charAt(0)}`.toUpperCase();
-    }
-
-    hasCompletedProfile(): boolean {
-        return !!(this.firstName && this.lastName && this.dateOfBirth && this.mobileNumber);
-    }
 }
